@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #f3f4f6; /* Màu nền xám nhẹ cho dịu mắt */
+}
+
+@keyframes moveBackground {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-bg-scroll {
+  /* SỬA TỪ 150% XUỐNG 110% */
+  background-size: 110% 110%; 
+  animation: moveBackground 30s ease infinite; /* Tăng thời gian lên 30s cho trôi chậm rãi chill chill */
+}
+
+@keyframes sprite-slide {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+/* Class hỗ trợ pixel art */
+.pixelated {
+  image-rendering: pixelated; /* Chrome/Edge */
+  image-rendering: crisp-edges; /* Firefox */
+}
