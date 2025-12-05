@@ -1,108 +1,118 @@
 // src/components/Block/Block.jsx
 import React from 'react';
 
-const Block = ({ type, text, onClick }) => {
+const Block = ({ type, text, onClick, theme = 'light' }) => {
   
-  // 1. CẤU HÌNH MÀU SẮC (Theo chuẩn ScratchJr)
-  const getStyle = (t) => {
-    switch (t) {
-      case 'motion': return 'bg-blue-500 border-blue-700 shadow-[0_4px_0_#1d4ed8]'; // Xanh dương
-      case 'events': return 'bg-yellow-400 border-yellow-600 shadow-[0_4px_0_#ca8a04]'; // Vàng
-      case 'looks': return 'bg-purple-500 border-purple-700 shadow-[0_4px_0_#7e22ce]'; // Tím
-      case 'control': return 'bg-orange-400 border-orange-600 shadow-[0_4px_0_#c2410c]'; // Cam
-      default: return 'bg-gray-500 border-gray-700';
-    }
-  };
-
-  // 2. TÁCH SỐ RA KHỎI CHỮ
-  // Ví dụ: "Move 10 steps" -> val = 10
-  // Ví dụ: "Move -10 steps" -> val = 10 (Hướng sẽ xử lý bằng icon)
   const valMatch = text.match(/-?\d+/);
   const rawVal = valMatch ? parseInt(valMatch[0]) : null;
-  const displayVal = rawVal ? Math.abs(rawVal) : null; // Luôn hiển thị số dương trong bong bóng
+  const displayVal = rawVal ? Math.abs(rawVal) : null;
 
-  // 3. CHỌN ICON DỰA VÀO NỘI DUNG
-  const renderIcon = () => {
-    // Nếu là lệnh Move
-    if (text.includes("Move")) {
-        // Nếu số âm -> Mũi tên trái, Số dương -> Mũi tên phải
-        if (text.includes("-")) {
-            return (
-                // Icon Mũi tên Trái (SVG)
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="white" className="w-10 h-10">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                </svg>
-            );
-        } else {
-            return (
-                // Icon Mũi tên Phải (SVG)
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="white" className="w-10 h-10">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
-            );
-        }
-    }
+  const getIconImage = () => {
+    if (text.includes("Move") && !text.includes("-")) return "right.png";
+    if (text.includes("Move") && text.includes("-")) return "left.png";
+    if (text.includes("Turn right")) return "turnright.png";
+    if (text.includes("Turn left")) return "turnleft.png";
+    if (text.includes("Go to")) return "gohome.png";
     
-    // Nếu là lệnh Turn (Xoay)
-    if (text.includes("Turn right")) {
-        return (
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="white" className="w-10 h-10">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-        );
-    }
-    if (text.includes("Turn left")) {
-        // Icon xoay trái (tạm dùng icon refresh lật ngược hoặc tương tự)
-        return (
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="white" className="w-10 h-10 -scale-x-100">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-        );
-    }
+    if (text.includes("clicked") || text.includes("tap")) return "ontap.png";
+    if (text.includes("flag")) return "onflag.png";
+    
+    if (text.includes("Say")) return "say.png";
+    if (text.includes("Hide")) return "hide.png";
+    if (text.includes("Show")) return "show.png";
+    
+    if (text.includes("Wait")) return "wait.png";
+    if (text.includes("Repeat")) return "repeat.png";
+    if (text.includes("Stop")) return "stop.png";
+    if (text.includes("Speed")) return "speed.png";
 
-    // Nếu là Sự kiện (Lá cờ, Click)
-    if (type === 'events') {
-        return (
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="white" className="w-10 h-10">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5" />
-            </svg>
-        );
-    }
+    if (text.includes("End")) return "end.png";
+    if (text.includes("Forever")) return "forever.png";
+    if (text.includes("Page")) return "page.png";
+    
+    return null;
+  };
 
-    // Các trường hợp khác: Icon tròn mặc định
-    return <div className="w-6 h-6 border-4 border-white rounded-full"></div>;
+  const imageName = getIconImage();
+
+  // --- MÀU CHỦ ĐẠO ---
+  const getThemeColor = () => {
+    switch(type) {
+        case 'motion':  return '#3b82f6'; // Xanh
+        case 'events':  return '#fbbf24'; // Vàng
+        case 'looks':   return '#d946ef'; // Tím
+        case 'control': return '#f97316'; // Cam
+        case 'end':     return '#ef4444'; // Đỏ
+        default:        return '#ffffff';
+    }
+  };
+  const neonColor = getThemeColor();
+
+  // Filter cho Block chính (Glow mạnh)
+  const getBlockFilter = () => {
+    return `drop-shadow(0 0 2px ${neonColor}) drop-shadow(0 0 6px ${neonColor})`;
   };
 
   return (
     <div 
       onClick={onClick}
-      className={`
-        relative 
-        w-20 h-20 
-        rounded-xl 
-        border-4 
-        flex flex-col items-center justify-center 
-        cursor-pointer 
-        transition-all duration-100 hover:scale-110 active:scale-95
-        ${getStyle(type)}
-      `}
-      title={text} // Rê chuột vào vẫn hiện chữ gốc để nhắc
+      className="relative z-10 transition-all duration-200 cursor-pointer hover:scale-110 active:scale-95 group hover:z-50"
+      title={text}
     >
-      {/* 1. ICON CHÍNH GIỮA */}
-      <div className="mb-1 drop-shadow-md">
-        {renderIcon()}
-      </div>
+      {imageName ? (
+        <div className="relative flex flex-col items-center">
+            
+            {/* 1. KHỐI LỆNH CHÍNH (Có viền sáng neon) */}
+            <img 
+                src={`/assets/images/ui/${imageName}`} 
+                alt={text}
+                className="relative z-10 object-contain w-20 h-auto pixelated"
+                style={{ filter: getBlockFilter() }} 
+            />
+            
+            {/* 2. Ô SỐ "ĐỈNH CAO" (LUXURY BADGE) */}
+            {displayVal !== null && (
+                <div 
+                    className="absolute bottom-[4px] left-[45%] -translate-x-1/2 z-20 flex items-center justify-center"
+                    style={{
+                        minWidth: '36px',
+                        height: '22px',
+                        borderRadius: '12px', // Bo tròn kiểu viên thuốc (Capsule)
+                        
+                        // MÀU NỀN: Trắng pha chút màu của block để đồng bộ
+                        backgroundColor: '#ffffff',
+                        
+                        // VIỀN & BÓNG ĐỔ 3D (Bí mật của sự sang trọng)
+                        boxShadow: `
+                            inset 0 -2px 4px rgba(0,0,0,0.1), /* Bóng trong tạo độ sâu */
+                            0 2px 4px rgba(0,0,0,0.2),        /* Bóng đổ xuống nền */
+                            0 0 8px ${neonColor},             /* Hào quang màu trùng block */
+                            0 0 0 2px white                   /* Viền trắng cứng bao ngoài */
+                        `,
+                        border: `1px solid ${neonColor}` // Viền mỏng màu block
+                    }}
+                >
+                    {/* Hiệu ứng bóng kính (Glossy) ở nửa trên */}
+                    <div className="absolute top-0 left-0 w-full rounded-t-full h-1/2 bg-gradient-to-b from-white to-transparent opacity-80"></div>
 
-      {/* 2. BONG BÓNG SỐ (INPUT) Ở DƯỚI */}
-      {/* Chỉ hiện nếu lệnh có số (displayVal khác null) */}
-      {displayVal !== null && (
-        <div className="absolute -bottom-3 bg-white text-black font-black text-sm px-2 py-0.5 rounded-full border-2 border-gray-300 shadow-sm min-w-[30px] text-center">
-            {displayVal}
+                    {/* Con số */}
+                    <span 
+                        className="relative z-10 text-sm font-black leading-none"
+                        style={{ 
+                            color: '#1e293b', // Màu chữ xám đen sang trọng
+                            textShadow: '0 1px 0 rgba(255,255,255,1)' // Bóng chữ trắng để nét hơn
+                        }}
+                    >
+                        {displayVal}
+                    </span>
+                </div>
+            )}
+        </div>
+      ) : (
+        <div className="flex items-center justify-center w-16 h-16 p-1 text-xs font-bold text-center text-white bg-gray-400 border-2 border-gray-500 rounded-lg">
+            {text}
         </div>
       )}
-
-      {/* 3. CÁI KHỚP NỐI (Jigsaw Connector) BÊN PHẢI */}
-      <div className={`absolute -right-3 top-1/2 -translate-y-1/2 w-4 h-6 rounded-r-md ${getStyle(type).split(' ')[0]}`}></div>
       
     </div>
   );

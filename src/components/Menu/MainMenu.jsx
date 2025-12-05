@@ -39,7 +39,7 @@ const MainMenu = ({ onStart, onTutorial }) => {
 
       {/* --- KHU VỰC MENU (5 NÚT ĐỒNG NHẤT) --- */}
       {/* Tăng chiều rộng lên w-80 để chứa đủ chữ */}
-      <div className="relative z-10 flex flex-col gap-4 w-80">
+      <div className="relative z-10 flex flex-col gap-4 mb-10 w-80">
         
         {/* 1. Nút Bắt đầu (Xanh lá) */}
         <button 

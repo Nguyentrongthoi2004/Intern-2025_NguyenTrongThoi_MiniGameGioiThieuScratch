@@ -1,27 +1,208 @@
 // src/components/Game/GameScreen.jsx
 import React, { useState, useEffect } from 'react';
-import { levels } from '../../data/levels';
-import Block from '../Block/Block';
-import Stage from './Stage';
-import ResultModal from '../UI/ResultModal';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
+import { levels } from '../../data/levels';
+import ResultModal from '../UI/ResultModal';
+import SettingsModal from '../UI/SettingsModal';
+import GameControls from './GameControls';
+import GamePanel from './GamePanel';
+import GameMonitor from './GameMonitor';
+
+// ================== CYBER GAMING BACKGROUND DECOR ==================
+const ThemeDecorations = ({ theme }) => {
+  const isDark = theme === 'dark';
+
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      {/* Lớp glow nền chung */}
+      <div
+        className="absolute inset-0 opacity-[0.25]"
+        style={{
+          backgroundImage: isDark
+            ? 'radial-gradient(circle at top, rgba(129,140,248,0.35) 0, transparent 55%), radial-gradient(circle at bottom, rgba(8,47,73,0.9) 0, transparent 60%)'
+            : 'radial-gradient(circle at top, rgba(56,189,248,0.4) 0, transparent 55%), radial-gradient(circle at bottom, rgba(30,64,175,0.85) 0, transparent 60%)',
+        }}
+      />
+
+      {/* ========= LIGHT THEME: CYBER MORNING ========= */}
+      {!isDark && (
+        <>
+          {/* Gradient trời sáng nhưng vẫn game */}
+          <div
+            className="absolute inset-0 opacity-[0.5]"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at top left, rgba(59,130,246,0.45) 0, transparent 55%), ' +
+                'radial-gradient(circle at bottom right, rgba(244,114,182,0.4) 0, transparent 60%)',
+            }}
+          />
+
+          {/* Mặt trời neon */}
+          <motion.div
+            className="absolute w-32 h-32 rounded-full top-10 right-16"
+            style={{
+              background:
+                'radial-gradient(circle at 30% 30%, #fef9c3, #fde047, #f97316)',
+              boxShadow:
+                '0 0 50px rgba(250,204,21,0.9), 0 0 120px rgba(251,191,36,0.7)',
+            }}
+            animate={{ scale: [1, 1.04, 1], opacity: [0.9, 1, 0.9] }}
+            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+          />
+
+          {/* Horizon glow */}
+          <div
+            className="absolute bottom-[32%] left-1/2 w-[1200px] h-40 -translate-x-1/2 blur-[60px] opacity-70"
+            style={{
+              background:
+                'radial-gradient(circle at center, rgba(248,250,252,0.9), transparent 60%)',
+            }}
+          />
+
+          {/* Tia ánh sáng quét ngang */}
+          {[0, 1, 2].map((i) => (
+            <motion.div
+              key={i}
+              className="absolute -bottom-12 -left-40 w-[55vw] h-32 bg-gradient-to-r from-white/15 via-cyan-300/40 to-transparent skew-x-[-18deg]"
+              animate={{ x: ['-40vw', '120vw'] }}
+              transition={{
+                duration: 22 + i * 5,
+                repeat: Infinity,
+                delay: i * 3,
+                ease: 'linear',
+              }}
+            />
+          ))}
+
+          {/* Hạt sáng nhỏ */}
+          {[...Array(25)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute bg-white rounded-full"
+              style={{
+                width: 2,
+                height: 2,
+                top: `${10 + Math.random() * 70}%`,
+                left: `${Math.random() * 100}%`,
+              }}
+              animate={{ opacity: [0.15, 0.9, 0.2], y: [0, -6, 0] }}
+              transition={{
+                duration: 4 + Math.random() * 4,
+                repeat: Infinity,
+                delay: Math.random() * 3,
+              }}
+            />
+          ))}
+        </>
+      )}
+
+      {/* ========= DARK THEME: NEON GRID ========= */}
+      {isDark && (
+        <>
+          {/* Lưới 3D xanh dương */}
+          <div
+            className="absolute inset-x-[-20%] bottom-[-40%] h-[140%] opacity-60"
+            style={{
+              backgroundImage:
+                'linear-gradient(rgba(8,145,178,0.6) 1px, transparent 1px), ' +
+                'linear-gradient(90deg, rgba(8,145,178,0.6) 1px, transparent 1px)',
+              backgroundSize: '80px 80px',
+              transform:
+                'perspective(650px) rotateX(68deg) translateY(-40px) scale(1.4)',
+            }}
+          />
+
+          {/* Glow chân trời */}
+          <div
+            className="absolute bottom-0 left-1/2 w-[1300px] h-[420px] -translate-x-1/2 blur-[85px] opacity-70"
+            style={{
+              background:
+                'radial-gradient(circle at top, rgba(56,189,248,0.95), transparent 65%)',
+            }}
+          />
+
+          {/* Mặt trăng / hành tinh */}
+          <motion.div
+            className="absolute rounded-full top-10 right-16 w-28 h-28"
+            style={{
+              background:
+                'radial-gradient(circle at 25% 30%, #e2e8f0, #94a3b8, #64748b)',
+              boxShadow:
+                'inset -6px -6px 18px rgba(15,23,42,0.95), 0 0 40px rgba(168,85,247,0.9)',
+            }}
+            animate={{ y: [0, -6, 0], scale: [1, 1.02, 1] }}
+            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <div className="absolute w-5 h-5 rounded-full top-4 left-6 bg-slate-500/25" />
+            <div className="absolute rounded-full w-7 h-7 bottom-6 right-7 bg-slate-500/25" />
+          </motion.div>
+
+          {/* Sao lấp lánh */}
+          {[...Array(35)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full bg-cyan-100"
+              style={{
+                width: Math.random() * 2 + 1,
+                height: Math.random() * 2 + 1,
+                top: `${Math.random() * 60}%`,
+                left: `${Math.random() * 100}%`,
+              }}
+              animate={{ opacity: [0.1, 0.95, 0.1] }}
+              transition={{
+                duration: 2 + Math.random() * 3,
+                repeat: Infinity,
+                delay: Math.random() * 3,
+              }}
+            />
+          ))}
+
+          {/* Laser quét chéo */}
+          {[0, 1].map((i) => (
+            <motion.div
+              key={i}
+              className="absolute -top-16 left-[-25%] w-[70vw] h-24 bg-gradient-to-r from-purple-500/40 via-cyan-400/40 to-transparent skew-y-[-16deg]"
+              animate={{ x: ['-30vw', '120vw'] }}
+              transition={{
+                duration: 26 + i * 6,
+                repeat: Infinity,
+                delay: 2 + i * 4,
+                ease: 'linear',
+              }}
+            />
+          ))}
+        </>
+      )}
+    </div>
+  );
+};
+
+// ================== GAME SCREEN ==================
 const GameScreen = ({ difficulty, onBack, characterId }) => {
-  
-  const gameLevels = levels.filter(lvl => lvl.difficulty === difficulty);
-  
-  // --- STATE ---
+  const gameLevels = levels.filter((lvl) => lvl.difficulty === difficulty);
+
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const [lives, setLives] = useState(5);
   const [modal, setModal] = useState(null);
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState('dark');
+  const [hideUI, setHideUI] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [enableBlur, setEnableBlur] = useState(true);
+  const [enableSound, setEnableSound] = useState(true);
 
   const [characterState, setCharacterState] = useState({
-    x: 0, y: 0, rotation: 90, status: 'idle' 
+    x: 0,
+    y: 0,
+    rotation: 90,
+    status: 'idle',
   });
-  
+
+  const containerControls = useAnimation();
   const currentLevel = gameLevels[currentLevelIndex];
 
-  // --- EFFECT ---
+  // Reset khi đổi độ khó
   useEffect(() => {
     setCurrentLevelIndex(0);
     setLives(5);
@@ -33,295 +214,225 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
     setCharacterState({ x: 0, y: 0, rotation: 90, status: 'idle' });
   };
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  };
-
-  if (!currentLevel) return <div className="flex items-center justify-center h-screen text-2xl font-bold text-gray-500">Loading...</div>;
-
-  // --- LOGIC XỬ LÝ HÀNH ĐỘNG ---
+  // Logic chạy block (giữ nguyên)
   const executeBlockAction = (blockText) => {
-    setCharacterState(prev => ({ ...prev, status: 'move' }));
-    if (blockText.includes("Move")) {
-        const steps = parseInt(blockText.match(/-?\d+/)[0]) || 10;
-        setCharacterState(prev => {
-            const rad = (prev.rotation - 90) * (Math.PI / 180);
-            return {
-                ...prev,
-                x: prev.x + Math.cos(rad) * steps * 5, 
-                y: prev.y + Math.sin(rad) * steps * 5 
-            };
-        });
-    } else if (blockText.includes("Turn right")) {
-        const degrees = parseInt(blockText.match(/\d+/)[0]) || 15;
-        setCharacterState(prev => ({ ...prev, rotation: prev.rotation + degrees }));
-    } else if (blockText.includes("Turn left")) {
-        const degrees = parseInt(blockText.match(/\d+/)[0]) || 15;
-        setCharacterState(prev => ({ ...prev, rotation: prev.rotation - degrees }));
-    } else if (blockText.includes("Go to x: 0 y: 0")) {
-        setCharacterState(prev => ({ ...prev, x: 0, y: 0 }));
+    setCharacterState((prev) => ({ ...prev, status: 'move' }));
+
+    if (blockText.includes('Move')) {
+      const steps = parseInt(blockText.match(/-?\d+/)?.[0]) || 10;
+      setCharacterState((prev) => {
+        const rad = (prev.rotation - 90) * (Math.PI / 180);
+        return {
+          ...prev,
+          x: prev.x + Math.cos(rad) * steps * 5,
+          y: prev.y + Math.sin(rad) * steps * 5,
+        };
+      });
+    } else if (blockText.includes('Turn right')) {
+      const degrees = parseInt(blockText.match(/\d+/)?.[0]) || 15;
+      setCharacterState((prev) => ({ ...prev, rotation: prev.rotation + degrees }));
+    } else if (blockText.includes('Turn left')) {
+      const degrees = parseInt(blockText.match(/\d+/)?.[0]) || 15;
+      setCharacterState((prev) => ({ ...prev, rotation: prev.rotation - degrees }));
+    } else if (blockText.includes('Go to x: 0 y: 0')) {
+      setCharacterState((prev) => ({ ...prev, x: 0, y: 0 }));
     }
+
     setTimeout(() => {
-        setCharacterState(prev => ({ ...prev, status: 'idle' }));
+      setCharacterState((prev) => ({ ...prev, status: 'idle' }));
     }, 500);
   };
 
-  // --- LOGIC GAMEPLAY ---
   const handleBlockClick = (blockId) => {
-    if (lives <= 0 || modal) return;
+    if (lives <= 0 || modal || showSettings) return;
 
-    const selectedBlock = currentLevel.options.find(opt => opt.id === blockId);
+    const selectedBlock = currentLevel.options.find((opt) => opt.id === blockId);
+    if (!selectedBlock) return;
 
     if (blockId === currentLevel.correctBlockId) {
       executeBlockAction(selectedBlock.text);
+
       setTimeout(() => {
         if (currentLevelIndex < gameLevels.length - 1) {
-            setModal({ type: 'correct', message: 'Bạn làm tốt lắm!' });
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+          setModal({ type: 'correct', message: 'Xuất sắc! Tiếp tục nào!' });
         } else {
-            setModal({ type: 'win', message: 'Bạn là thiên tài lập trình!' });
+          confetti({ particleCount: 200, spread: 100 });
+          setModal({ type: 'win', message: 'Bạn là bậc thầy Code!' });
         }
       }, 800);
     } else {
       const newLives = lives - 1;
       setLives(newLives);
+
+      // Lắc nhẹ cả layout
+      containerControls.start({
+        x: [-5, 5, -5, 5, 0],
+        transition: { duration: 0.3 },
+      });
+
       if (newLives <= 0) {
-        setCharacterState(prev => ({ ...prev, status: 'death' }));
+        setCharacterState((prev) => ({ ...prev, status: 'death' }));
         setTimeout(() => {
-            setModal({ type: 'gameover', message: 'Hết mạng rồi huhu!' });
+          setModal({ type: 'gameover', message: 'Hết mạng rồi! Cố lên nhé!' });
         }, 1000);
       } else {
-        setCharacterState(prev => ({ ...prev, status: 'hurt' }));
-        setModal({ type: 'wrong', message: 'Chưa đúng, thử lại nhé!' });
+        setCharacterState((prev) => ({ ...prev, status: 'hurt' }));
+        setModal({ type: 'wrong', message: 'Sai rồi, thử lại xem!' });
         setTimeout(() => {
-            setCharacterState(prev => ({ ...prev, status: 'idle' }));
+          setCharacterState((prev) => ({ ...prev, status: 'idle' }));
         }, 500);
       }
     }
   };
 
   const handleNextLevel = () => {
-    if (modal.type === 'correct') {
-        setModal(null);
-        setCurrentLevelIndex(prev => prev + 1);
-        resetCharacter();
-    } else if (modal.type === 'wrong') {
-        setModal(null); 
-    } else if (modal.type === 'win' || modal.type === 'gameover') {
-        if (onBack) onBack(); 
+    if (modal?.type === 'correct') {
+      setModal(null);
+      setCurrentLevelIndex((prev) => prev + 1);
+      resetCharacter();
+    } else if (modal?.type === 'wrong') {
+      setModal(null);
+    } else if (modal?.type === 'win' || modal?.type === 'gameover') {
+      if (onBack) onBack();
     }
   };
 
-  // --- THEME CONFIG ---
   const isDark = theme === 'dark';
-  const styles = {
-    light: {
-        panel: 'bg-white/60 border-white text-slate-800 shadow-[0_8px_32px_rgba(31,38,135,0.15)] backdrop-blur-lg',
-        textTitle: 'text-indigo-600 drop-shadow-sm',
-        textSub: 'text-indigo-400',
-        boxTask: 'bg-white/80 border-indigo-300 text-indigo-900 shadow-inner',
-        // Hiệu ứng hover cho Block (Light Mode): Nổi lên + Viền xanh đậm
-        blockItem: 'bg-white/90 border-white hover:bg-blue-50 hover:border-blue-300 hover:shadow-lg hover:-translate-y-1',
-        blockText: 'text-slate-700'
-    },
-    dark: {
-        panel: 'bg-slate-900/80 border-cyan-900/50 text-cyan-50 shadow-[0_0_30px_rgba(8,145,178,0.2)] backdrop-blur-md',
-        textTitle: 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]',
-        textSub: 'text-cyan-200/70',
-        boxTask: 'bg-cyan-950/50 border-cyan-500 text-cyan-300 shadow-[inset_0_0_20px_rgba(6,182,212,0.1)]',
-        // Hiệu ứng hover cho Block (Dark Mode): Phát sáng Neon + Viền Cyan
-        blockItem: 'bg-slate-800/80 border-slate-600 hover:bg-slate-700 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] hover:-translate-y-1',
-        blockText: 'text-cyan-50'
-    }
-  };
 
-  const currentTheme = styles[theme];
+  // Base màu nền – đều là gaming, chỉ khác tông
+  const mainBgClass = isDark ? 'bg-slate-950' : 'bg-slate-900';
+
+  // ================== CYBER THEME CHO PANEL / TEXT ==================
+  const currentTheme = isDark
+    ? {
+        // Dark: tím – cyan
+        panel:
+          'bg-[#020617]/90 backdrop-blur-xl border-cyan-500/30 shadow-[0_0_40px_rgba(34,211,238,0.4)]',
+        textTitle: 'text-cyan-300 font-extrabold',
+        textSub: 'text-slate-300 font-semibold',
+        blockTextMain: 'text-slate-50',
+        blockTextSub: 'text-cyan-300',
+        boxTask:
+          'bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-slate-900/90 border-l-4 border-cyan-400 text-slate-100',
+        blockWrapper:
+          'bg-slate-900/80 border-slate-700 hover:border-cyan-400 hover:bg-slate-900',
+      }
+    : {
+        // Light: xanh dương – vàng neon nhưng nền vẫn dark để đồng bộ monitor
+        panel:
+          'bg-[#020617]/90 backdrop-blur-xl border-sky-400/40 shadow-[0_0_40px_rgba(56,189,248,0.5)]',
+        textTitle: 'text-sky-300 font-extrabold',
+        textSub: 'text-slate-200 font-semibold',
+        blockTextMain: 'text-slate-50',
+        blockTextSub: 'text-sky-300',
+        boxTask:
+          'bg-gradient-to-r from-slate-900/90 via-slate-900/80 to-slate-900/90 border-l-4 border-sky-400 text-slate-100',
+        blockWrapper:
+          'bg-slate-900/80 border-slate-700 hover:border-sky-400 hover:bg-slate-900',
+      };
+
+  if (!currentLevel) {
+    return (
+      <div className="flex items-center justify-center h-screen text-white bg-black">
+        Loading...
+      </div>
+    );
+  }
 
   return (
-    <div className={`relative flex h-screen p-6 overflow-hidden font-sans pt-20 transition-colors duration-700 bg-slate-900`}>
-      
-      {/* === BACKGROUND ĐỘNG === */}
-      {!isDark && (
-        <>
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-300 via-sky-200 to-blue-300 animate-[pulse_8s_infinite]"></div>
-            <div className="absolute inset-0 opacity-40" 
-                 style={{ 
-                     backgroundImage: 'linear-gradient(white 2px, transparent 2px), linear-gradient(90deg, white 2px, transparent 2px)',
-                     backgroundSize: '60px 60px',
-                     transform: 'perspective(500px) rotateX(20deg) scale(1.5)',
-                     animation: 'grid-move 20s linear infinite'
-                 }}>
-            </div>
-            <div className="absolute top-20 left-20 w-64 h-64 bg-white/40 rounded-full blur-3xl animate-[bounce_10s_infinite]"></div>
-            <div className="absolute bottom-20 right-20 w-96 h-96 bg-yellow-200/40 rounded-full blur-3xl animate-[pulse_12s_infinite]"></div>
-        </>
-      )}
+    <motion.div
+      className={`relative w-full h-screen overflow-hidden flex flex-col ${mainBgClass}`}
+      animate={containerControls}
+    >
+      <ThemeDecorations theme={theme} />
 
-      {isDark && (
-        <>
-            <div className="absolute inset-0 bg-[#050b14]"></div>
-            <div className="absolute inset-0 animate-[ping_3s_infinite] opacity-30" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '50px 50px' }}></div>
-            <div className="absolute inset-0 opacity-20" 
-                 style={{ 
-                     backgroundImage: 'linear-gradient(rgba(6,182,212,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.3) 1px, transparent 1px)',
-                     backgroundSize: '40px 40px',
-                     transform: 'perspective(500px) rotateX(20deg) scale(1.5)',
-                     animation: 'grid-move 20s linear infinite'
-                 }}>
-            </div>
-            <div className="absolute left-0 right-0 h-full -bottom-1/2 bg-gradient-to-t from-cyan-900/40 via-purple-900/20 to-transparent blur-3xl animate-pulse"></div>
-        </>
-      )}
-
-      <style>{`
-        @keyframes grid-move {
-            0% { transform: perspective(500px) rotateX(20deg) scale(1.5) translateY(0); }
-            100% { transform: perspective(500px) rotateX(20deg) scale(1.5) translateY(40px); }
-        }
-      `}</style>
-      
-      {/* --- CỤM NÚT ĐIỀU KHIỂN (CÓ HIỆU ỨNG HOVER GLOW) --- */}
-      <div className="absolute z-50 flex gap-3 top-6 left-6">
-        {/* Nút HOME */}
-        <button 
-            onClick={() => onBack && onBack()}
-            className={`w-12 h-12 rounded-xl shadow-lg border-2 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95
-                ${isDark ? 'bg-red-900/80 border-red-500 text-red-200 hover:shadow-[0_0_15px_rgba(239,68,68,0.6)]' : 'bg-red-500 hover:bg-red-400 text-white border-red-600 hover:shadow-red-300'}`}
-            title="Về trang chủ"
-        >
-            <span className="text-2xl">🏠</span>
-        </button>
-
-        {/* Nút SETTING */}
-        <button 
-            onClick={() => alert("Cài đặt đang phát triển!")}
-            className={`w-12 h-12 rounded-xl shadow-lg border-2 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95
-                ${isDark ? 'bg-slate-800/80 border-slate-500 text-cyan-400 hover:text-cyan-200 hover:shadow-[0_0_15px_rgba(34,211,238,0.4)]' : 'bg-white/80 hover:bg-white text-slate-600 border-slate-300 hover:shadow-lg'}`}
-            title="Cài đặt"
-        >
-            <span className="text-2xl animate-spin-slow hover:animate-spin">⚙️</span>
-        </button>
-
-        {/* Nút THEME */}
-        <button 
-            onClick={toggleTheme}
-            className={`w-12 h-12 rounded-xl shadow-lg border-2 flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95
-                ${isDark ? 'bg-yellow-600/80 border-yellow-400 text-yellow-200 hover:shadow-[0_0_15px_rgba(250,204,21,0.6)]' : 'bg-indigo-500 hover:bg-indigo-400 text-white border-indigo-600 hover:shadow-indigo-300'}`}
-            title="Đổi giao diện"
-        >
-            <span className="text-2xl">{theme === 'light' ? '🌙' : '☀️'}</span>
-        </button>
-      </div>
-
-      {/* --- MODAL --- */}
-      {modal && (
-        <ResultModal 
-            type={modal.type} 
-            message={modal.message} 
-            onNext={handleNextLevel} 
+      {/* Nút điều khiển góc trên trái */}
+      <div className="absolute top-0 left-0 z-50 p-4">
+        <GameControls
+          onBack={onBack}
+          setShowSettings={setShowSettings}
+          toggleTheme={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
+          theme={theme}
+          setHideUI={setHideUI}
+          hideUI={hideUI}
         />
-      )}
-
-      {/* --- CỘT TRÁI: BẢNG ĐIỀU KHIỂN --- */}
-      <div className={`relative z-10 flex flex-col w-2/5 h-full p-6 mr-6 transition-all border-4 rounded-3xl mt-4 ${currentTheme.panel}`}>
-         
-         {/* Header */}
-         <div className="flex items-center justify-between mb-4">
-            <div className="flex flex-col">
-                <span className={`text-xs font-extrabold tracking-widest uppercase ${currentTheme.textSub}`}>Màn chơi</span>
-                <span className={`font-mono text-2xl font-black ${currentTheme.textTitle}`}>
-                    {currentLevelIndex + 1}<span className="text-lg opacity-50">/</span>{gameLevels.length}
-                </span>
-            </div>
-            
-            {/* Thanh máu (Hover vào tim sẽ đập) */}
-            <div className={`flex gap-2 px-3 py-1 rounded-full border-2 shadow-sm transition-all hover:scale-105 ${isDark ? 'bg-black/40 border-cyan-900' : 'bg-white/50 border-white'}`}>
-                {[...Array(5)].map((_, i) => (
-                    <span key={i} className={`text-2xl transition-all duration-300 cursor-default hover:scale-125 ${i < lives ? 'scale-100' : 'scale-75 opacity-30 grayscale'}`}>
-                        {i < lives ? '❤️' : '🖤'} 
-                    </span>
-                ))}
-            </div>
-         </div>
-
-         {/* Tiêu đề & Nhiệm vụ */}
-         <div className="mb-4">
-            <h1 className={`mb-2 text-3xl font-black drop-shadow-sm ${currentTheme.textTitle}`}>{currentLevel.title}</h1>
-            
-            <div className={`p-4 mb-2 border-l-8 rounded-r-xl shadow-sm transition-transform hover:translate-x-1 ${currentTheme.boxTask}`}>
-                <p className="flex items-start gap-2 text-lg font-bold">
-                    <span className="animate-bounce">🎯</span> {currentLevel.instruction}
-                </p>
-            </div>
-            
-            <p className={`ml-1 text-xs italic ${currentTheme.textSub}`}>
-                💡 {currentLevel.hint || "Hãy chọn khối lệnh phù hợp nhất bên dưới."}
-            </p>
-         </div>
-         
-         {/* Danh sách Block */}
-         <div className="flex-1 p-2 overflow-y-auto custom-scrollbar">
-             <div className="space-y-4">
-                 {currentLevel.options.map(opt => (
-                     <div 
-                        key={opt.id} 
-                        // Áp dụng class hover động dựa theo theme
-                        className={`flex items-center gap-4 cursor-pointer group rounded-xl border-2 shadow-sm transition-all duration-300 ${currentTheme.blockItem}`}
-                        onClick={() => handleBlockClick(opt.id)}
-                     >
-                         {/* Cột 1: Block */}
-                         <div className="relative z-20 p-2 transition-transform duration-300 transform group-hover:scale-110 group-hover:rotate-2">
-                            <Block type={opt.type} text={opt.text} />
-                         </div>
-
-                         {/* Cột 2: Mô tả */}
-                         <div className="relative z-10 flex-1 p-2">
-                             <p className={`text-lg font-bold ${currentTheme.blockText}`}>{opt.text}</p>
-                             <p className={`mt-1 text-xs tracking-widest uppercase ${currentTheme.textSub}`}>{opt.type}</p>
-                         </div>
-                     </div>
-                 ))}
-             </div>
-         </div>
       </div>
 
-      {/* --- CỘT PHẢI: STAGE AREA --- */}
-      <div className="relative z-10 flex flex-col w-3/5 h-full mt-4">
-         
-         {/* Badge Độ khó */}
-         <div className="absolute z-20 transition-transform -top-3 right-8 hover:scale-110">
-            <span className={`px-6 py-2 rounded-b-xl text-sm font-black uppercase shadow-[0_0_15px_rgba(0,0,0,0.5)] tracking-widest border-t-0 border-4
-                ${isDark ? 'bg-cyan-950 text-cyan-400 border-cyan-600' : 'bg-white text-indigo-600 border-white'}`}>
-                Cấp độ: {difficulty}
-            </span>
-         </div>
-
-         {/* Khung Màn Hình TV */}
-         <div className={`relative flex items-center justify-center flex-1 p-4 shadow-2xl rounded-3xl border-b-8 transition-colors duration-500
-            ${isDark ? 'bg-slate-900 border-black ring-4 ring-cyan-900/50 shadow-[0_0_50px_rgba(6,182,212,0.3)]' : 'bg-slate-200 border-slate-400 ring-4 ring-white/50'}`}>
-            
-            {/* Đèn tín hiệu */}
-            <div className={`absolute flex flex-col items-center justify-around w-2 py-2 rounded-full top-1/2 left-2 h-16
-                ${isDark ? 'bg-cyan-950 border border-cyan-800' : 'bg-slate-300 border border-slate-400'}`}>
-                <div className="w-1 h-1 bg-red-500 rounded-full animate-ping"></div>
-                <div className="w-1 h-1 bg-green-500 rounded-full"></div>
-            </div>
-
-            {/* Stage */}
-            <div className={`relative w-full h-full overflow-hidden border-4 shadow-inner rounded-2xl
-                ${isDark ? 'border-cyan-900 bg-black' : 'border-slate-400 bg-white'}`}>
-                <Stage 
-                    key={currentLevelIndex} 
-                    x={characterState.x} 
-                    y={characterState.y} 
-                    rotation={characterState.rotation} 
-                    status={characterState.status}
-                    characterId={characterId}
+      <AnimatePresence>
+        {!hideUI && (
+          <motion.div
+            className="z-10 flex items-center justify-center flex-1 w-full min-h-0 px-8 pt-24 pb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <div className="flex gap-12 w-full h-full max-w-[1800px] items-center justify-between">
+              {/* CỘT TRÁI - GamePanel */}
+              <motion.div
+                className="w-[28%] min-w-[350px] max-w-[450px] h-full flex-none flex flex-col"
+                initial={{ x: -50 }}
+                animate={{ x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <GamePanel
+                  theme={theme}
+                  currentTheme={currentTheme}
+                  currentLevelIndex={currentLevelIndex}
+                  totalLevels={gameLevels.length}
+                  lives={lives}
+                  currentLevel={currentLevel}
+                  handleBlockClick={handleBlockClick}
                 />
-            </div>
-         </div>
-      </div>
+              </motion.div>
 
-    </div>
+              {/* CỘT PHẢI - GameMonitor */}
+              <motion.div
+                className="relative flex items-center justify-end flex-1 h-full"
+                initial={{ x: 50 }}
+                animate={{ x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {/* Hào quang phía sau Switch */}
+                <div
+                  className={`absolute right-32 top-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-[50%] blur-[120px] opacity-40 pointer-events-none ${
+                    isDark ? 'bg-cyan-500/80' : 'bg-sky-400/80'
+                  }`}
+                />
+                <GameMonitor
+                  isDark={isDark}
+                  difficulty={difficulty}
+                  currentLevelIndex={currentLevelIndex}
+                  characterState={characterState}
+                  characterId={characterId}
+                />
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODALS */}
+      <AnimatePresence>
+        {showSettings && (
+          <SettingsModal
+            onClose={() => setShowSettings(false)}
+            isBlur={enableBlur}
+            toggleBlur={() => setEnableBlur(!enableBlur)}
+            isSound={enableSound}
+            toggleSound={() => setEnableSound(!enableSound)}
+          />
+        )}
+
+        {modal && (
+          <ResultModal
+            type={modal.type}
+            message={modal.message}
+            onNext={handleNextLevel}
+            theme={theme}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
