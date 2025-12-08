@@ -16,91 +16,130 @@ const ThemeDecorations = ({ theme }) => {
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-      {/* Lớp glow nền chung */}
+      {/* NỀN CHUNG */}
       <div
-        className="absolute inset-0 opacity-[0.25]"
+        className="absolute inset-0"
         style={{
-          backgroundImage: isDark
-            ? 'radial-gradient(circle at top, rgba(129,140,248,0.35) 0, transparent 55%), radial-gradient(circle at bottom, rgba(8,47,73,0.9) 0, transparent 60%)'
-            : 'radial-gradient(circle at top, rgba(56,189,248,0.4) 0, transparent 55%), radial-gradient(circle at bottom, rgba(30,64,175,0.85) 0, transparent 60%)',
+          background: isDark
+            ? 'radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%)'
+            : 'linear-gradient(to bottom, #e0f2fe 0%, #bfdbfe 40%, #fef3c7 100%)',
         }}
       />
 
-      {/* ========= LIGHT THEME: CYBER MORNING ========= */}
+      {/* ========= LIGHT THEME: CYBER GRID SÁNG ========= */}
       {!isDark && (
         <>
-          {/* Gradient trời sáng nhưng vẫn game */}
+          {/* Gradient trời sáng kiểu cyber */}
           <div
-            className="absolute inset-0 opacity-[0.5]"
+            className="absolute inset-0"
             style={{
-              backgroundImage:
-                'radial-gradient(circle at top left, rgba(59,130,246,0.45) 0, transparent 55%), ' +
-                'radial-gradient(circle at bottom right, rgba(244,114,182,0.4) 0, transparent 60%)',
+              background:
+                'radial-gradient(circle at top, #e0f2fe 0%, #bae6fd 45%, #93c5fd 75%, #60a5fa 100%)',
             }}
           />
 
-          {/* Mặt trời neon */}
-          <motion.div
-            className="absolute w-32 h-32 rounded-full top-10 right-16"
+          {/* Lưới 3D sáng */}
+          <div
+            className="absolute inset-x-[-20%] bottom-[-35%] h-[140%] opacity-70"
+            style={{
+              backgroundImage:
+                'linear-gradient(rgba(56,189,248,0.6) 1px, transparent 1px), ' +
+                'linear-gradient(90deg, rgba(56,189,248,0.6) 1px, transparent 1px)',
+              backgroundSize: '90px 90px',
+              transform:
+                'perspective(700px) rotateX(67deg) translateY(-40px) scale(1.35)',
+            }}
+          />
+
+          {/* Glow chân trời */}
+          <div
+            className="absolute bottom-0 left-1/2 w-[1400px] h-[360px] -translate-x-1/2 blur-[90px] opacity-80"
             style={{
               background:
-                'radial-gradient(circle at 30% 30%, #fef9c3, #fde047, #f97316)',
-              boxShadow:
-                '0 0 50px rgba(250,204,21,0.9), 0 0 120px rgba(251,191,36,0.7)',
+                'radial-gradient(circle at top, rgba(125,211,252,1), transparent 70%)',
             }}
-            animate={{ scale: [1, 1.04, 1], opacity: [0.9, 1, 0.9] }}
+          />
+
+          {/* Mặt trời light */}
+          <motion.div
+            className="absolute rounded-full top-12 right-16 w-28 h-28"
+            style={{
+              background:
+                'radial-gradient(circle at 30% 30%, #fef9c3, #fde047, #fb923c)',
+              boxShadow:
+                '0 0 60px rgba(253,224,71,0.9), 0 0 140px rgba(251,191,36,0.7)',
+            }}
+            animate={{ y: [0, -6, 0], scale: [1, 1.03, 1] }}
             transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
           />
 
-          {/* Horizon glow */}
-          <div
-            className="absolute bottom-[32%] left-1/2 w-[1200px] h-40 -translate-x-1/2 blur-[60px] opacity-70"
-            style={{
-              background:
-                'radial-gradient(circle at center, rgba(248,250,252,0.9), transparent 60%)',
-            }}
-          />
-
-          {/* Tia ánh sáng quét ngang */}
-          {[0, 1, 2].map((i) => (
-            <motion.div
-              key={i}
-              className="absolute -bottom-12 -left-40 w-[55vw] h-32 bg-gradient-to-r from-white/15 via-cyan-300/40 to-transparent skew-x-[-18deg]"
-              animate={{ x: ['-40vw', '120vw'] }}
-              transition={{
-                duration: 22 + i * 5,
-                repeat: Infinity,
-                delay: i * 3,
-                ease: 'linear',
-              }}
-            />
-          ))}
-
-          {/* Hạt sáng nhỏ */}
-          {[...Array(25)].map((_, i) => (
+          {/* Sao sáng nhẹ */}
+          {[...Array(30)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute bg-white rounded-full"
               style={{
-                width: 2,
-                height: 2,
-                top: `${10 + Math.random() * 70}%`,
+                width: Math.random() * 2 + 1,
+                height: Math.random() * 2 + 1,
+                top: `${Math.random() * 65}%`,
                 left: `${Math.random() * 100}%`,
+                opacity: 0.8,
               }}
-              animate={{ opacity: [0.15, 0.9, 0.2], y: [0, -6, 0] }}
+              animate={{ opacity: [0.4, 1, 0.4] }}
               transition={{
-                duration: 4 + Math.random() * 4,
+                duration: 2 + Math.random() * 3,
                 repeat: Infinity,
                 delay: Math.random() * 3,
+              }}
+            />
+          ))}
+
+          {/* LED RGB mỏng trên đỉnh (Light) */}
+          {[0, 1].map((i) => (
+            <motion.div
+              key={i}
+              className="absolute top-0 left-[-20%] w-[140%] h-[3px]"
+              style={{
+                backgroundImage:
+                  'linear-gradient(90deg, rgba(34,211,238,0) 0%, rgba(56,189,248,0.9) 20%, rgba(129,140,248,0.9) 50%, rgba(251,191,36,0.9) 80%, rgba(34,211,238,0) 100%)',
+                opacity: 0.9,
+              }}
+              animate={{ x: ['-10%', '10%', '-10%'] }}
+              transition={{
+                duration: 12 + i * 3,
+                repeat: Infinity,
+                ease: 'easeInOut',
+                delay: i * 1.5,
               }}
             />
           ))}
         </>
       )}
 
-      {/* ========= DARK THEME: NEON GRID ========= */}
+      {/* ========= DARK THEME: NEON GRID + NEBULA ========= */}
       {isDark && (
         <>
+          {/* Dải tinh vân neon thay cho line */}
+          <motion.div
+            className="absolute left-[-10%] top-[12%] w-[120%] h-[180px] blur-[90px] opacity-70"
+            style={{
+              background: `
+                radial-gradient(circle at 20% 50%, rgba(249,115,22,0.55), transparent 60%),
+                radial-gradient(circle at 50% 40%, rgba(217,70,239,0.55), transparent 65%),
+                radial-gradient(circle at 80% 60%, rgba(56,189,248,0.55), transparent 65%)
+              `,
+            }}
+            animate={{
+              opacity: [0.5, 0.8, 0.5],
+              scale: [1, 1.04, 1],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+
           {/* Lưới 3D xanh dương */}
           <div
             className="absolute inset-x-[-20%] bottom-[-40%] h-[140%] opacity-60"
@@ -136,7 +175,7 @@ const ThemeDecorations = ({ theme }) => {
             transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
           >
             <div className="absolute w-5 h-5 rounded-full top-4 left-6 bg-slate-500/25" />
-            <div className="absolute rounded-full w-7 h-7 bottom-6 right-7 bg-slate-500/25" />
+            <div className="absolute rounded-full bottom-6 right-7 w-7 h-7 bg-slate-500/25" />
           </motion.div>
 
           {/* Sao lấp lánh */}
@@ -159,17 +198,22 @@ const ThemeDecorations = ({ theme }) => {
             />
           ))}
 
-          {/* Laser quét chéo */}
+          {/* LED RGB mỏng trên đỉnh (Dark) */}
           {[0, 1].map((i) => (
             <motion.div
               key={i}
-              className="absolute -top-16 left-[-25%] w-[70vw] h-24 bg-gradient-to-r from-purple-500/40 via-cyan-400/40 to-transparent skew-y-[-16deg]"
-              animate={{ x: ['-30vw', '120vw'] }}
+              className="absolute top-0 left-[-20%] w-[140%] h-[3px]"
+              style={{
+                backgroundImage:
+                  'linear-gradient(90deg, rgba(15,23,42,0) 0%, rgba(147,51,234,0.95) 20%, rgba(34,211,238,0.95) 50%, rgba(59,130,246,0.95) 80%, rgba(15,23,42,0) 100%)',
+                opacity: 0.95,
+              }}
+              animate={{ x: ['10%', '-10%', '10%'] }}
               transition={{
-                duration: 26 + i * 6,
+                duration: 14 + i * 3,
                 repeat: Infinity,
-                delay: 2 + i * 4,
-                ease: 'linear',
+                ease: 'easeInOut',
+                delay: i * 1.5,
               }}
             />
           ))}
@@ -214,7 +258,7 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
     setCharacterState({ x: 0, y: 0, rotation: 90, status: 'idle' });
   };
 
-  // Logic chạy block (giữ nguyên)
+  // Logic chạy block
   const executeBlockAction = (blockText) => {
     setCharacterState((prev) => ({ ...prev, status: 'move' }));
 
@@ -230,10 +274,16 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
       });
     } else if (blockText.includes('Turn right')) {
       const degrees = parseInt(blockText.match(/\d+/)?.[0]) || 15;
-      setCharacterState((prev) => ({ ...prev, rotation: prev.rotation + degrees }));
+      setCharacterState((prev) => ({
+        ...prev,
+        rotation: prev.rotation + degrees,
+      }));
     } else if (blockText.includes('Turn left')) {
       const degrees = parseInt(blockText.match(/\d+/)?.[0]) || 15;
-      setCharacterState((prev) => ({ ...prev, rotation: prev.rotation - degrees }));
+      setCharacterState((prev) => ({
+        ...prev,
+        rotation: prev.rotation - degrees,
+      }));
     } else if (blockText.includes('Go to x: 0 y: 0')) {
       setCharacterState((prev) => ({ ...prev, x: 0, y: 0 }));
     }
@@ -246,7 +296,9 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
   const handleBlockClick = (blockId) => {
     if (lives <= 0 || modal || showSettings) return;
 
-    const selectedBlock = currentLevel.options.find((opt) => opt.id === blockId);
+    const selectedBlock = currentLevel.options.find(
+      (opt) => opt.id === blockId
+    );
     if (!selectedBlock) return;
 
     if (blockId === currentLevel.correctBlockId) {
@@ -300,8 +352,8 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
 
   const isDark = theme === 'dark';
 
-  // Base màu nền – đều là gaming, chỉ khác tông
-  const mainBgClass = isDark ? 'bg-slate-950' : 'bg-slate-900';
+  // Base màu nền
+  const mainBgClass = isDark ? 'bg-slate-950' : 'bg-sky-100';
 
   // ================== CYBER THEME CHO PANEL / TEXT ==================
   const currentTheme = isDark
@@ -319,7 +371,7 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
           'bg-slate-900/80 border-slate-700 hover:border-cyan-400 hover:bg-slate-900',
       }
     : {
-        // Light: xanh dương – vàng neon nhưng nền vẫn dark để đồng bộ monitor
+        // Light: xanh dương – vàng neon
         panel:
           'bg-[#020617]/90 backdrop-blur-xl border-sky-400/40 shadow-[0_0_40px_rgba(56,189,248,0.5)]',
         textTitle: 'text-sky-300 font-extrabold',
@@ -352,7 +404,9 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
         <GameControls
           onBack={onBack}
           setShowSettings={setShowSettings}
-          toggleTheme={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
+          toggleTheme={() =>
+            setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+          }
           theme={theme}
           setHideUI={setHideUI}
           hideUI={hideUI}
@@ -366,7 +420,7 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className="flex gap-12 w-full h-full max-w-[1800px] items-center justify-between">
+            <div className="flex w-full h-full max-w-[1800px] items-center justify-between gap-12">
               {/* CỘT TRÁI - GamePanel */}
               <motion.div
                 className="w-[28%] min-w-[350px] max-w-[450px] h-full flex-none flex flex-col"
