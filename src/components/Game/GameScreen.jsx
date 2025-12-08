@@ -1,5 +1,5 @@
 // src/components/Game/GameScreen.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
@@ -11,8 +11,59 @@ import GamePanel from './GamePanel';
 import GameMonitor from './GameMonitor';
 
 // ================== CYBER GAMING BACKGROUND DECOR ==================
-const ThemeDecorations = ({ theme }) => {
+const ThemeDecorations = ({ theme, lowEffects, fxDensity }) => {
   const isDark = theme === 'dark';
+
+  // Chuẩn hoá mật độ 0–1
+  const density = Math.max(0, Math.min(100, fxDensity ?? 60));
+  const fx = lowEffects ? 0 : density / 100; // 0–1, nếu lowEffects thì tắt hết FX
+
+  // 👉 NẾU FX = 0: nền gần như phẳng, không LED, không sao (nhưng vẫn khác lowEffects một xíu)
+  if (fx === 0) {
+    return (
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: isDark
+              ? 'radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%)'
+              : 'linear-gradient(to bottom, #e0f2fe 0%, #bfdbfe 40%, #fef3c7 100%)',
+          }}
+        />
+        <div
+          className="absolute bottom-0 left-1/2 w-[900px] h-[200px] -translate-x-1/2 rounded-full"
+          style={{
+            background: isDark
+              ? 'radial-gradient(circle at top, rgba(15,118,110,0.5), transparent 70%)'
+              : 'radial-gradient(circle at top, rgba(56,189,248,0.6), transparent 70%)',
+            filter: 'blur(40px)',
+            opacity: 0.25,
+          }}
+        />
+      </div>
+    );
+  }
+
+  // 👉 CHẾ ĐỘ GIẢM HIỆU ỨNG: nền đơn giản, không LED, không nebula
+  if (lowEffects) {
+    return (
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: isDark
+              ? 'radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%)'
+              : 'linear-gradient(to bottom, #e0f2fe 0%, #bfdbfe 40%, #fef3c7 100%)',
+          }}
+        />
+      </div>
+    );
+  }
+
+  // ================== BẢN FULL HIỆU ỨNG ==================
+  // dùng fx để chỉnh opacity / số lượng sao / độ sáng glow – khác rất rõ 0 ↔ 100
+  const lightStarCount = Math.round(4 + fx * 32); // 4–36
+  const darkStarCount = Math.round(5 + fx * 35); // 5–40
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -26,22 +77,23 @@ const ThemeDecorations = ({ theme }) => {
         }}
       />
 
-      {/* ========= LIGHT THEME: CYBER GRID SÁNG ========= */}
+      {/* ========= LIGHT THEME ========= */}
       {!isDark && (
         <>
-          {/* Gradient trời sáng kiểu cyber */}
           <div
             className="absolute inset-0"
             style={{
               background:
                 'radial-gradient(circle at top, #e0f2fe 0%, #bae6fd 45%, #93c5fd 75%, #60a5fa 100%)',
+              opacity: 0.2 + fx * 0.8, // 0.2–1.0
             }}
           />
 
-          {/* Lưới 3D sáng */}
+          {/* Grid dưới */}
           <div
-            className="absolute inset-x-[-20%] bottom-[-35%] h-[140%] opacity-70"
+            className="absolute inset-x-[-20%] bottom-[-30%] h-[120%]"
             style={{
+              opacity: fx * 0.7, // 0–0.7
               backgroundImage:
                 'linear-gradient(rgba(56,189,248,0.6) 1px, transparent 1px), ' +
                 'linear-gradient(90deg, rgba(56,189,248,0.6) 1px, transparent 1px)',
@@ -51,16 +103,18 @@ const ThemeDecorations = ({ theme }) => {
             }}
           />
 
-          {/* Glow chân trời */}
+          {/* Glow dưới */}
           <div
-            className="absolute bottom-0 left-1/2 w-[1400px] h-[360px] -translate-x-1/2 blur-[90px] opacity-80"
+            className="absolute bottom-0 left-1/2 w-[1300px] h-[260px] -translate-x-1/2"
             style={{
               background:
                 'radial-gradient(circle at top, rgba(125,211,252,1), transparent 70%)',
+              opacity: fx * 0.9, // 0–0.9
+              filter: `blur(${20 + fx * 60}px)`,
             }}
           />
 
-          {/* Mặt trời light */}
+          {/* Mặt trời */}
           <motion.div
             className="absolute rounded-full top-12 right-16 w-28 h-28"
             style={{
@@ -68,13 +122,14 @@ const ThemeDecorations = ({ theme }) => {
                 'radial-gradient(circle at 30% 30%, #fef9c3, #fde047, #fb923c)',
               boxShadow:
                 '0 0 60px rgba(253,224,71,0.9), 0 0 140px rgba(251,191,36,0.7)',
+              opacity: 0.4 + fx * 0.6, // 0.4–1
             }}
             animate={{ y: [0, -6, 0], scale: [1, 1.03, 1] }}
             transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
           />
 
-          {/* Sao sáng nhẹ */}
-          {[...Array(30)].map((_, i) => (
+          {/* Sao */}
+          {Array.from({ length: lightStarCount }).map((_, i) => (
             <motion.div
               key={i}
               className="absolute bg-white rounded-full"
@@ -83,9 +138,9 @@ const ThemeDecorations = ({ theme }) => {
                 height: Math.random() * 2 + 1,
                 top: `${Math.random() * 65}%`,
                 left: `${Math.random() * 100}%`,
-                opacity: 0.8,
+                opacity: 0.1 + fx * 0.9, // 0.1–1
               }}
-              animate={{ opacity: [0.4, 1, 0.4] }}
+              animate={{ opacity: [0.1, 0.8, 0.1] }}
               transition={{
                 duration: 2 + Math.random() * 3,
                 repeat: Infinity,
@@ -94,43 +149,41 @@ const ThemeDecorations = ({ theme }) => {
             />
           ))}
 
-          {/* LED RGB mỏng trên đỉnh (Light) */}
+          {/* LED bay */}
           {[0, 1].map((i) => (
             <motion.div
               key={i}
-              className="absolute top-0 left-[-20%] w-[140%] h-[3px]"
-              style={{
-                backgroundImage:
-                  'linear-gradient(90deg, rgba(34,211,238,0) 0%, rgba(56,189,248,0.9) 20%, rgba(129,140,248,0.9) 50%, rgba(251,191,36,0.9) 80%, rgba(34,211,238,0) 100%)',
-                opacity: 0.9,
-              }}
-              animate={{ x: ['-10%', '10%', '-10%'] }}
+              className="absolute -top-10 left-[-30%] w-[70vw] h-10 bg-gradient-to-r from-cyan-300/60 via-sky-400/70 to-transparent skew-y-[-10deg]"
+              style={{ opacity: 0.1 + fx * 0.8 }} // 0.1–0.9
+              animate={{ x: ['-30vw', '120vw'] }}
               transition={{
-                duration: 12 + i * 3,
+                duration: 26 + i * 6,
                 repeat: Infinity,
-                ease: 'easeInOut',
-                delay: i * 1.5,
+                delay: i * 4,
+                ease: 'linear',
               }}
             />
           ))}
         </>
       )}
 
-      {/* ========= DARK THEME: NEON GRID + NEBULA ========= */}
+      {/* ========= DARK THEME ========= */}
       {isDark && (
         <>
-          {/* Dải tinh vân neon thay cho line */}
+          {/* Nebula trên */}
           <motion.div
-            className="absolute left-[-10%] top-[12%] w-[120%] h-[180px] blur-[90px] opacity-70"
+            className="absolute left-[-10%] top-[12%] w-[120%] h-[150px]"
             style={{
               background: `
                 radial-gradient(circle at 20% 50%, rgba(249,115,22,0.55), transparent 60%),
                 radial-gradient(circle at 50% 40%, rgba(217,70,239,0.55), transparent 65%),
                 radial-gradient(circle at 80% 60%, rgba(56,189,248,0.55), transparent 65%)
               `,
+              filter: `blur(${40 + fx * 40}px)`,
+              opacity: 0.15 + fx * 0.6, // 0.15–0.75
             }}
             animate={{
-              opacity: [0.5, 0.8, 0.5],
+              opacity: [0.4, 0.8, 0.4],
               scale: [1, 1.04, 1],
             }}
             transition={{
@@ -140,10 +193,11 @@ const ThemeDecorations = ({ theme }) => {
             }}
           />
 
-          {/* Lưới 3D xanh dương */}
+          {/* Grid dưới */}
           <div
-            className="absolute inset-x-[-20%] bottom-[-40%] h-[140%] opacity-60"
+            className="absolute inset-x-[-20%] bottom-[-35%] h-[120%]"
             style={{
+              opacity: fx * 0.55, // 0–0.55
               backgroundImage:
                 'linear-gradient(rgba(8,145,178,0.6) 1px, transparent 1px), ' +
                 'linear-gradient(90deg, rgba(8,145,178,0.6) 1px, transparent 1px)',
@@ -153,16 +207,18 @@ const ThemeDecorations = ({ theme }) => {
             }}
           />
 
-          {/* Glow chân trời */}
+          {/* Glow dưới */}
           <div
-            className="absolute bottom-0 left-1/2 w-[1300px] h-[420px] -translate-x-1/2 blur-[85px] opacity-70"
+            className="absolute bottom-0 left-1/2 w-[1300px] h-[320px] -translate-x-1/2"
             style={{
               background:
                 'radial-gradient(circle at top, rgba(56,189,248,0.95), transparent 65%)',
+              filter: `blur(${40 + fx * 50}px)`,
+              opacity: fx * 0.85, // 0–0.85
             }}
           />
 
-          {/* Mặt trăng / hành tinh */}
+          {/* Mặt trăng */}
           <motion.div
             className="absolute rounded-full top-10 right-16 w-28 h-28"
             style={{
@@ -170,6 +226,7 @@ const ThemeDecorations = ({ theme }) => {
                 'radial-gradient(circle at 25% 30%, #e2e8f0, #94a3b8, #64748b)',
               boxShadow:
                 'inset -6px -6px 18px rgba(15,23,42,0.95), 0 0 40px rgba(168,85,247,0.9)',
+              opacity: 0.35 + fx * 0.65, // 0.35–1
             }}
             animate={{ y: [0, -6, 0], scale: [1, 1.02, 1] }}
             transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
@@ -178,8 +235,8 @@ const ThemeDecorations = ({ theme }) => {
             <div className="absolute rounded-full bottom-6 right-7 w-7 h-7 bg-slate-500/25" />
           </motion.div>
 
-          {/* Sao lấp lánh */}
-          {[...Array(35)].map((_, i) => (
+          {/* Sao */}
+          {Array.from({ length: darkStarCount }).map((_, i) => (
             <motion.div
               key={i}
               className="absolute rounded-full bg-cyan-100"
@@ -189,7 +246,7 @@ const ThemeDecorations = ({ theme }) => {
                 top: `${Math.random() * 60}%`,
                 left: `${Math.random() * 100}%`,
               }}
-              animate={{ opacity: [0.1, 0.95, 0.1] }}
+              animate={{ opacity: [0, 0.7 + fx * 0.3, 0] }} // 0–1
               transition={{
                 duration: 2 + Math.random() * 3,
                 repeat: Infinity,
@@ -198,22 +255,18 @@ const ThemeDecorations = ({ theme }) => {
             />
           ))}
 
-          {/* LED RGB mỏng trên đỉnh (Dark) */}
+          {/* LED bay */}
           {[0, 1].map((i) => (
             <motion.div
               key={i}
-              className="absolute top-0 left-[-20%] w-[140%] h-[3px]"
-              style={{
-                backgroundImage:
-                  'linear-gradient(90deg, rgba(15,23,42,0) 0%, rgba(147,51,234,0.95) 20%, rgba(34,211,238,0.95) 50%, rgba(59,130,246,0.95) 80%, rgba(15,23,42,0) 100%)',
-                opacity: 0.95,
-              }}
-              animate={{ x: ['10%', '-10%', '10%'] }}
+              className="absolute -top-8 left-[-25%] w-[70vw] h-9 bg-gradient-to-r from-purple-500/50 via-cyan-400/50 to-transparent skew-y-[-10deg]"
+              style={{ opacity: 0.15 + fx * 0.7 }} // 0.15–0.85
+              animate={{ x: ['-30vw', '120vw'] }}
               transition={{
-                duration: 14 + i * 3,
+                duration: 26 + i * 6,
                 repeat: Infinity,
-                ease: 'easeInOut',
-                delay: i * 1.5,
+                delay: 2 + i * 4,
+                ease: 'linear',
               }}
             />
           ))}
@@ -233,8 +286,13 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
   const [theme, setTheme] = useState('dark');
   const [hideUI, setHideUI] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
   const [enableBlur, setEnableBlur] = useState(true);
   const [enableSound, setEnableSound] = useState(true);
+  const [lowEffects, setLowEffects] = useState(false);
+
+  // Mật độ hiệu ứng 0–100 (dùng cho confetti + background)
+  const [fxDensity, setFxDensity] = useState(60);
 
   const [characterState, setCharacterState] = useState({
     x: 0,
@@ -242,6 +300,15 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
     rotation: 90,
     status: 'idle',
   });
+
+  const [stats, setStats] = useState({
+    correct: 0,
+    wrong: 0,
+    total: gameLevels.length,
+  });
+
+  const [answerFeedback, setAnswerFeedback] = useState(null);
+  const feedbackTimeoutRef = useRef(null);
 
   const containerControls = useAnimation();
   const currentLevel = gameLevels[currentLevelIndex];
@@ -252,13 +319,34 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
     setLives(5);
     resetCharacter();
     setModal(null);
-  }, [difficulty]);
+    setStats({ correct: 0, wrong: 0, total: gameLevels.length });
+    setAnswerFeedback(null);
+    if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+  }, [difficulty, gameLevels.length]);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
+    };
+  }, []);
 
   const resetCharacter = () => {
     setCharacterState({ x: 0, y: 0, rotation: 90, status: 'idle' });
   };
 
-  // Logic chạy block
+  const restartGame = () => {
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+    }
+    setCurrentLevelIndex(0);
+    setLives(5);
+    resetCharacter();
+    setModal(null);
+    setStats({ correct: 0, wrong: 0, total: gameLevels.length });
+    setAnswerFeedback(null);
+  };
+
   const executeBlockAction = (blockText) => {
     setCharacterState((prev) => ({ ...prev, status: 'move' }));
 
@@ -293,6 +381,43 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
     }, 500);
   };
 
+  const buildSummaryMessage = (isWin) => {
+    const totalAnswered = stats.correct + stats.wrong;
+    return `${
+      isWin ? 'Bạn đã hoàn thành tất cả câu hỏi!' : 'Bạn đã hết mạng!'
+    }\n\nTổng kết:\n- Đúng: ${stats.correct}\n- Sai: ${
+      stats.wrong
+    }\n- Trả lời: ${totalAnswered}/${gameLevels.length}`;
+  };
+
+  const goToNextLevel = () => {
+    setAnswerFeedback(null);
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+    }
+
+    if (currentLevelIndex < gameLevels.length - 1) {
+      setCurrentLevelIndex((prev) => prev + 1);
+      resetCharacter();
+    } else {
+      // dùng mật độ hiệu ứng để tính số lượng pháo hoa
+      const fx = lowEffects ? 0 : fxDensity / 100;
+      const particleCount = Math.round(20 + fx * 220); // 20–240
+
+      confetti({
+        particleCount,
+        spread: 90,
+        origin: { y: 0.6 },
+      });
+
+      setModal({
+        type: 'win',
+        message: buildSummaryMessage(true),
+      });
+    }
+  };
+
   const handleBlockClick = (blockId) => {
     if (lives <= 0 || modal || showSettings) return;
 
@@ -301,64 +426,60 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
     );
     if (!selectedBlock) return;
 
-    if (blockId === currentLevel.correctBlockId) {
+    const isCorrect = blockId === currentLevel.correctBlockId;
+
+    if (isCorrect) {
+      setStats((prev) => ({ ...prev, correct: prev.correct + 1 }));
       executeBlockAction(selectedBlock.text);
 
-      setTimeout(() => {
-        if (currentLevelIndex < gameLevels.length - 1) {
-          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-          setModal({ type: 'correct', message: 'Xuất sắc! Tiếp tục nào!' });
-        } else {
-          confetti({ particleCount: 200, spread: 100 });
-          setModal({ type: 'win', message: 'Bạn là bậc thầy Code!' });
-        }
-      }, 800);
+      setAnswerFeedback({
+        status: 'correct',
+        selectedId: blockId,
+        correctId: currentLevel.correctBlockId,
+      });
+
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+      }
+      feedbackTimeoutRef.current = setTimeout(() => {
+        goToNextLevel();
+      }, 2500);
     } else {
+      setStats((prev) => ({ ...prev, wrong: prev.wrong + 1 }));
       const newLives = lives - 1;
       setLives(newLives);
 
-      // Lắc nhẹ cả layout
       containerControls.start({
         x: [-5, 5, -5, 5, 0],
         transition: { duration: 0.3 },
       });
 
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+        feedbackTimeoutRef.current = null;
+      }
+      setAnswerFeedback(null);
+
       if (newLives <= 0) {
-        setCharacterState((prev) => ({ ...prev, status: 'death' }));
         setTimeout(() => {
-          setModal({ type: 'gameover', message: 'Hết mạng rồi! Cố lên nhé!' });
-        }, 1000);
-      } else {
-        setCharacterState((prev) => ({ ...prev, status: 'hurt' }));
-        setModal({ type: 'wrong', message: 'Sai rồi, thử lại xem!' });
-        setTimeout(() => {
-          setCharacterState((prev) => ({ ...prev, status: 'idle' }));
+          setModal({
+            type: 'gameover',
+            message: buildSummaryMessage(false),
+          });
         }, 500);
+      } else {
+        setTimeout(() => {
+          goToNextLevel();
+        }, 400);
       }
     }
   };
 
-  const handleNextLevel = () => {
-    if (modal?.type === 'correct') {
-      setModal(null);
-      setCurrentLevelIndex((prev) => prev + 1);
-      resetCharacter();
-    } else if (modal?.type === 'wrong') {
-      setModal(null);
-    } else if (modal?.type === 'win' || modal?.type === 'gameover') {
-      if (onBack) onBack();
-    }
-  };
-
   const isDark = theme === 'dark';
-
-  // Base màu nền
   const mainBgClass = isDark ? 'bg-slate-950' : 'bg-sky-100';
 
-  // ================== CYBER THEME CHO PANEL / TEXT ==================
   const currentTheme = isDark
     ? {
-        // Dark: tím – cyan
         panel:
           'bg-[#020617]/90 backdrop-blur-xl border-cyan-500/30 shadow-[0_0_40px_rgba(34,211,238,0.4)]',
         textTitle: 'text-cyan-300 font-extrabold',
@@ -371,7 +492,6 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
           'bg-slate-900/80 border-slate-700 hover:border-cyan-400 hover:bg-slate-900',
       }
     : {
-        // Light: xanh dương – vàng neon
         panel:
           'bg-[#020617]/90 backdrop-blur-xl border-sky-400/40 shadow-[0_0_40px_rgba(56,189,248,0.5)]',
         textTitle: 'text-sky-300 font-extrabold',
@@ -397,9 +517,12 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
       className={`relative w-full h-screen overflow-hidden flex flex-col ${mainBgClass}`}
       animate={containerControls}
     >
-      <ThemeDecorations theme={theme} />
+      <ThemeDecorations
+        theme={theme}
+        lowEffects={lowEffects}
+        fxDensity={fxDensity}
+      />
 
-      {/* Nút điều khiển góc trên trái */}
       <div className="absolute top-0 left-0 z-50 p-4">
         <GameControls
           onBack={onBack}
@@ -421,7 +544,7 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
             animate={{ opacity: 1 }}
           >
             <div className="flex w-full h-full max-w-[1800px] items-center justify-between gap-12">
-              {/* CỘT TRÁI - GamePanel */}
+              {/* PANEL BÊN TRÁI */}
               <motion.div
                 className="w-[28%] min-w-[350px] max-w-[450px] h-full flex-none flex flex-col"
                 initial={{ x: -50 }}
@@ -436,22 +559,30 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
                   lives={lives}
                   currentLevel={currentLevel}
                   handleBlockClick={handleBlockClick}
+                  answerFeedback={answerFeedback}
+                  onSkipFeedback={goToNextLevel}
                 />
               </motion.div>
 
-              {/* CỘT PHẢI - GameMonitor */}
+              {/* MÀN HÌNH GAME */}
               <motion.div
                 className="relative flex items-center justify-end flex-1 h-full"
                 initial={{ x: 50 }}
                 animate={{ x: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                {/* Hào quang phía sau Switch */}
-                <div
-                  className={`absolute right-32 top-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-[50%] blur-[120px] opacity-40 pointer-events-none ${
-                    isDark ? 'bg-cyan-500/80' : 'bg-sky-400/80'
-                  }`}
-                />
+                {/* Glow sau monitor – giảm theo fxDensity, tắt khi LowEffects */}
+                {!lowEffects && (
+                  <div
+                    className="absolute right-32 top-1/2 -translate-y-1/2 w-[680px] h-[480px] rounded-[50%] pointer-events-none"
+                    style={{
+                      background: isDark ? '#22d3ee' : '#38bdf8',
+                      opacity: 0.05 + (fxDensity / 100) * 0.45, // 0.05–0.5
+                      filter: `blur(${50 + (fxDensity / 100) * 40}px)`,
+                    }}
+                  />
+                )}
+
                 <GameMonitor
                   isDark={isDark}
                   difficulty={difficulty}
@@ -465,15 +596,18 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
         )}
       </AnimatePresence>
 
-      {/* MODALS */}
       <AnimatePresence>
         {showSettings && (
           <SettingsModal
             onClose={() => setShowSettings(false)}
             isBlur={enableBlur}
-            toggleBlur={() => setEnableBlur(!enableBlur)}
+            toggleBlur={() => setEnableBlur((v) => !v)}
             isSound={enableSound}
-            toggleSound={() => setEnableSound(!enableSound)}
+            toggleSound={() => setEnableSound((v) => !v)}
+            isLowEffects={lowEffects}
+            toggleLowEffects={() => setLowEffects((v) => !v)}
+            fxDensity={fxDensity}
+            onChangeFxDensity={setFxDensity}
           />
         )}
 
@@ -481,8 +615,14 @@ const GameScreen = ({ difficulty, onBack, characterId }) => {
           <ResultModal
             type={modal.type}
             message={modal.message}
-            onNext={handleNextLevel}
             theme={theme}
+            stats={stats}
+            onHome={onBack}
+            onReplay={restartGame}
+            onOpenSettings={() => {
+              setModal(null);
+              setShowSettings(true);
+            }}
           />
         )}
       </AnimatePresence>
