@@ -12,7 +12,7 @@ import GameMonitor from './GameMonitor';
 import TutorialScreen from '../Tutorial/TutorialScreen'; // Import TutorialScreen
 
 // ================== CYBER GAMING BACKGROUND DECOR ==================
-const ThemeDecorations = ({ theme, lowEffects, fxDensity }) => {
+const ThemeDecorations = React.memo(({ theme, lowEffects, fxDensity }) => {
   const isDark = theme === 'dark';
   const density = Math.max(0, Math.min(100, fxDensity ?? 60));
   const fx = lowEffects ? 0 : density / 100;
@@ -103,7 +103,7 @@ const ThemeDecorations = ({ theme, lowEffects, fxDensity }) => {
             }}
           />
           <motion.div
-            className="absolute rounded-full top-12 right-16 w-28 h-28"
+            className="absolute rounded-full top-12 right-16 w-28 h-28 will-change-transform"
             style={{
               background:
                 'radial-gradient(circle at 30% 30%, #fef9c3, #fde047, #fb923c)',
@@ -136,7 +136,7 @@ const ThemeDecorations = ({ theme, lowEffects, fxDensity }) => {
           {[0, 1].map((i) => (
             <motion.div
               key={i}
-              className="absolute -top-10 left-[-30%] w-[70vw] h-10 bg-gradient-to-r from-cyan-300/60 via-sky-400/70 to-transparent skew-y-[-10deg]"
+              className="absolute -top-10 left-[-30%] w-[70vw] h-10 bg-gradient-to-r from-cyan-300/60 via-sky-400/70 to-transparent skew-y-[-10deg] will-change-transform"
               style={{ opacity: 0.1 + fx * 0.8 }}
               animate={{ x: ['-30vw', '120vw'] }}
               transition={{
@@ -153,7 +153,7 @@ const ThemeDecorations = ({ theme, lowEffects, fxDensity }) => {
       {isDark && (
         <>
           <motion.div
-            className="absolute left-[-10%] top-[12%] w-[120%] h-[150px]"
+            className="absolute left-[-10%] top-[12%] w-[120%] h-[150px] will-change-transform"
             style={{
               background: `
                 radial-gradient(circle at 20% 50%, rgba(249,115,22,0.55), transparent 60%),
@@ -195,7 +195,7 @@ const ThemeDecorations = ({ theme, lowEffects, fxDensity }) => {
             }}
           />
           <motion.div
-            className="absolute rounded-full top-10 right-16 w-28 h-28"
+            className="absolute rounded-full top-10 right-16 w-28 h-28 will-change-transform"
             style={{
               background:
                 'radial-gradient(circle at 25% 30%, #e2e8f0, #94a3b8, #64748b)',
@@ -230,7 +230,7 @@ const ThemeDecorations = ({ theme, lowEffects, fxDensity }) => {
           {[0, 1].map((i) => (
             <motion.div
               key={i}
-              className="absolute -top-8 left-[-25%] w-[70vw] h-9 bg-gradient-to-r from-purple-500/50 via-cyan-400/50 to-transparent skew-y-[-10deg]"
+              className="absolute -top-8 left-[-25%] w-[70vw] h-9 bg-gradient-to-r from-purple-500/50 via-cyan-400/50 to-transparent skew-y-[-10deg] will-change-transform"
               style={{ opacity: 0.15 + fx * 0.7 }}
               animate={{ x: ['-30vw', '120vw'] }}
               transition={{
@@ -245,7 +245,7 @@ const ThemeDecorations = ({ theme, lowEffects, fxDensity }) => {
       )}
     </div>
   );
-};
+});
 
 // ================== GAME SCREEN ==================
 const GameScreen = ({ difficulty, onBack, characterId, onGoGuide }) => {
@@ -452,7 +452,7 @@ const GameScreen = ({ difficulty, onBack, characterId, onGoGuide }) => {
         {!hideUI && (
           <motion.div className="z-10 flex items-center justify-center flex-1 w-full min-h-0 px-8 pt-24 pb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="flex w-full h-full max-w-[1800px] items-center justify-between gap-12">
-              <motion.div className="w-[28%] min-w-[350px] max-w-[450px] h-full flex-none flex flex-col" initial={{ x: -50 }} animate={{ x: 0 }} transition={{ delay: 0.2 }}>
+              <motion.div className="w-[28%] min-w-[350px] max-w-[450px] h-full flex-none flex flex-col will-change-transform" initial={{ x: -50 }} animate={{ x: 0 }} transition={{ delay: 0.2 }}>
                 <GamePanel
                   theme={theme} currentTheme={currentTheme} currentLevelIndex={currentLevelIndex} totalLevels={gameLevels.length}
                   lives={lives} currentLevel={currentLevel} handleBlockClick={handleBlockClick} answerFeedback={answerFeedback} onSkipFeedback={goToNextLevel}

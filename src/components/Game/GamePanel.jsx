@@ -2,7 +2,7 @@
 import React from 'react';
 import Block from '../Block/Block';
 
-const GamePanel = ({
+const GamePanel = React.memo(({
   theme,
   currentTheme,
   currentLevelIndex,
@@ -25,7 +25,7 @@ const GamePanel = ({
     // LỚP VIỀN NGOÀI CỦA TABLET
     <div
       className={`relative z-10 flex h-full w-full flex-col rounded-[2.6rem] bg-gradient-to-b 
-      from-cyan-500/60 via-sky-500/30 to-violet-500/60 p-[4px] ${frameShadow} transition-all duration-500`}
+      from-cyan-500/60 via-sky-500/30 to-violet-500/60 p-[4px] ${frameShadow} transition-all duration-500 will-change-transform`}
     >
       {/* THÂN TABLET */}
       <div
@@ -260,6 +260,6 @@ const GamePanel = ({
       </div>
     </div>
   );
-};
+});
 
 export default GamePanel;
