@@ -7,3 +7,6 @@
 
   ➜  Local:   http://localhost:5173/
   ➜  Network: http://192.168.0.2:5173/
+12:09:31 PM [vite] (client) hmr update /src/index.css, /src/components/Game/Stage.jsx
+12:09:45 PM [vite] (client) hmr update /src/index.css, /src/components/Game/GameMonitor.jsx
+12:10:33 PM [vite] (client) hmr update /src/components/Game/GameScreen.jsx, /src/index.css
