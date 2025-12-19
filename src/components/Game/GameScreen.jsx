@@ -508,7 +508,7 @@ const GameScreen = ({ difficulty, onBack, characterId, onGoGuide }) => {
           <ResultModal
             type={modal.type} message={modal.message} theme={theme} stats={stats}
             onHome={onBack} onReplay={restartGame}
-            onOpenSettings={() => { setModal(null); setShowSettings(true); }}
+            onOpenSettings={() => { setShowSettings(true); }}
           />
         )}
       </AnimatePresence>
