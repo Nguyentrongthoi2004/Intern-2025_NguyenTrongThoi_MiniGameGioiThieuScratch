@@ -2,9 +2,8 @@
 > scratch-intern-project@0.0.0 dev
 > vite --host
 
-Port 5173 is in use, trying another one...
 
-  VITE v7.2.6  ready in 625 ms
+  VITE v7.2.6  ready in 239 ms
 
-  ➜  Local:   http://localhost:5174/
-  ➜  Network: http://192.168.0.2:5174/
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://192.168.0.2:5173/

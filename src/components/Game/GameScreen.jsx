@@ -504,7 +504,7 @@ const GameScreen = ({ difficulty, onBack, characterId, onGoGuide }) => {
             fxDensity={fxDensity} onChangeFxDensity={setFxDensity}
           />
         )}
-        {modal && (
+        {modal && !showSettings && (
           <ResultModal
             type={modal.type} message={modal.message} theme={theme} stats={stats}
             onHome={onBack} onReplay={restartGame}
