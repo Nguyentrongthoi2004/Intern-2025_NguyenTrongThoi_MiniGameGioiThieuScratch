@@ -35,7 +35,7 @@ const Stage = ({ x, y, rotation, status, characterId, speechText }) => {
 
       {/* --- 2. CONTAINER NHÂN VẬT --- */}
       <div
-        className="absolute z-10 w-32 h-32 transition-all duration-300 ease-out" // Giảm duration xuống 300ms để phản hồi nhanh hơn
+        className="absolute z-10 w-32 h-32 transition-all duration-300 ease-out will-change-transform" // Giảm duration xuống 300ms để phản hồi nhanh hơn
         style={{
           bottom: '18%', 
           left: '50%',
