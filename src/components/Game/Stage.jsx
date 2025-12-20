@@ -174,7 +174,7 @@ const Stage = ({
           transition: `transform ${moveDuration} cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease`, 
           transform: `translate(-50%, -100%) translate(${x}px, ${y * -1}px) scale(${cssScaleX}, 1) scale(${visible ? scale : 0}) ${cssRotation}`,
           opacity: visible ? 1 : 0,
-          filter: `drop-shadow(0 4px 6px rgba(0,0,0,0.3)) hue-rotate(${safeId === 'dude' ? 180 : safeId === 'owlet' ? 90 : 0}deg)` 
+          filter: `drop-shadow(0 4px 6px rgba(0,0,0,0.3))`
         }}
       >
         {/* Dust */}
