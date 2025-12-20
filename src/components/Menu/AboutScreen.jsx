@@ -1,6 +1,7 @@
 // src/components/Menu/AboutScreen.jsx
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { audioManager } from '../../utils/audioManager';
 import { IconUser, IconMusic, IconImage, IconGrid, IconVolume2, IconPlay } from '../UI/Icons';
 import Block from '../Block/Block';
 import ResultModal from '../UI/ResultModal';
@@ -91,16 +92,9 @@ const SectionContainer = ({ children }) => (
 
 const AboutScreen = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState('author');
-  const [playingAudio, setPlayingAudio] = useState(null);
 
   const playSound = (file) => {
-    if (playingAudio) {
-        playingAudio.pause();
-        playingAudio.currentTime = 0;
-    }
-    const audio = new Audio(`assets/sounds/${file}`);
-    audio.play().catch(e => console.error(e));
-    setPlayingAudio(audio);
+    audioManager.playSfx(file);
   };
 
   return (
@@ -307,7 +301,6 @@ const AboutScreen = ({ onBack }) => {
         <div className="flex justify-center p-6 border-t border-white/5 bg-slate-950/50">
            <button
              onClick={() => {
-                if(playingAudio) { playingAudio.pause(); }
                 onBack();
              }}
              className="px-8 py-3 text-xs font-bold tracking-widest text-white uppercase transition-all border rounded-full bg-slate-800 hover:bg-slate-700 border-slate-600 hover:border-cyan-500"

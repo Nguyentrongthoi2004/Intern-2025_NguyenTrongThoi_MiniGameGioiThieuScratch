@@ -1,4 +1,5 @@
 import React, { useMemo, useEffect, useRef } from 'react'; // Thêm useRef
+import { audioManager } from '../../utils/audioManager';
 import { IconMail } from '../UI/Icons';
 
 const Stage = ({ 
@@ -90,9 +91,7 @@ const Stage = ({
 
     if (popRegex.test(speechText)) {
       // console.log("Playing Pop sound for text:", speechText); // Debug nếu cần
-      const audio = new Audio('assets/sounds/pop.mp3');
-      audio.volume = 0.5;
-      audio.play().catch(() => {}); // Bỏ qua lỗi nếu trình duyệt chặn
+      audioManager.playSfx('pop.mp3');
       
       // Đánh dấu là đã phát cho câu này
       lastPlayedText.current = speechText;

@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import anime from 'animejs';
 
 import { levels } from '../../data/levels';
+import { audioManager } from '../../utils/audioManager';
 import ResultModal from '../UI/ResultModal';
 import SettingsModal from '../UI/SettingsModal';
 import GameControls from './GameControls';
@@ -191,10 +192,7 @@ const GameScreen = ({
   }, []);
 
   const playSfx = (filename) => {
-    if (!enableSound) return;
-    const audio = new Audio(`assets/sounds/${filename}`);
-    audio.volume = Math.max(0, Math.min(1, sfxVolume / 100));
-    audio.play().catch((err) => {});
+    audioManager.playSfx(filename);
   };
 
   // Timer logic - No longer stops when Settings is Open, but we can keep that if desired.

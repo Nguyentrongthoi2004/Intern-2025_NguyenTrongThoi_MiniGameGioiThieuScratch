@@ -9,6 +9,7 @@ import LeaderboardScreen from './components/Menu/LeaderboardScreen';
 import AboutScreen from './components/Menu/AboutScreen';
 import ShopScreen from './components/Menu/ShopScreen';
 import MouseTrail from './components/UI/MouseTrail';
+import { audioManager } from './utils/audioManager';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('menu');
@@ -21,7 +22,9 @@ function App() {
     try {
       const saved = localStorage.getItem('scratch_game_userdata');
       if (saved) return JSON.parse(saved).totalPoints || 0;
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
     return 0;
   });
 
@@ -29,7 +32,9 @@ function App() {
     try {
       const saved = localStorage.getItem('scratch_game_userdata');
       if (saved) return JSON.parse(saved).inventory || { hint: 1, skip: 1, heal: 1 };
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
     return { hint: 1, skip: 1, heal: 1 };
   });
 
@@ -48,24 +53,36 @@ function App() {
   const [enableSound, setEnableSound] = useState(true);
 
   // --- GLOBAL AUDIO CONTROLLER ---
-  // Use a persistent Audio object
-  const [audioObj] = useState(new Audio('assets/sounds/bg.mp3'));
-
+  // Using audioManager to handle autoplay and preloading
   useEffect(() => {
-    audioObj.loop = true;
+    audioManager.initBgm('assets/sounds/bg.mp3');
+    // Preload common SFX
+    audioManager.preloadSfx([
+      'bg.mp3', 'climb.mp3', 'hurt.mp3', 'jump.mp3',
+      'lose.mp3', 'move.mp3', 'pop.mp3', 'win.mp3'
+    ]);
+
+    // Handle Autoplay Policy: Retry playing on first interaction
+    const unlockAudio = () => {
+      audioManager.unlockAudio();
+    };
+
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('keydown', unlockAudio);
+
     return () => {
-        audioObj.pause();
-    }
-  }, [audioObj]);
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+      audioManager.pauseBgm();
+    };
+  }, []); // Run once on mount
 
+  // Sync state with manager
   useEffect(() => {
-      audioObj.volume = Math.max(0, Math.min(1, bgmVolume / 100));
-      if (enableSound) {
-          audioObj.play().catch(e => console.log("Audio play failed (interaction needed):", e));
-      } else {
-          audioObj.pause();
-      }
-  }, [bgmVolume, enableSound, audioObj]);
+    audioManager.setBgmVolume(bgmVolume);
+    audioManager.setSfxVolume(sfxVolume);
+    audioManager.setEnabled(enableSound);
+  }, [bgmVolume, sfxVolume, enableSound]);
 
 
   // Navigation Handlers
