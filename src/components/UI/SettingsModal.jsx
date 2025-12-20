@@ -1,5 +1,5 @@
 // src/components/UI/SettingsModal.jsx
-import React, { useState } from 'react'; // Bỏ useEffect vì không dùng
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconSettings, IconEye, IconHome, IconBook, IconLightning } from './Icons';
 
@@ -99,12 +99,7 @@ const SettingsModal = ({
   fxDensity, onChangeFxDensity,
   uiScale, setUiScale,
   onHome,
-  onOpenGuide,
-  // --- THÊM CÁC PROPS NÀY ĐỂ FIX LỖI ---
-  bgmVolume = 50,      // Giá trị mặc định nếu parent chưa truyền
-  setBgmVolume = () => {}, 
-  sfxVolume = 50,      // Giá trị mặc định
-  setSfxVolume = () => {}
+  onOpenGuide, // <--- Quan trọng: Prop này sẽ nhận hàm chuyển trang từ MainMenu
 }) => {
   const [activeTab, setActiveTab] = useState('general');
   const tabs = [
@@ -229,8 +224,8 @@ const SettingsModal = ({
                         <div className="mb-6"><CyberToggle label="Âm thanh tổng (Master)" subLabel={isSound ? "Hệ thống âm thanh đang hoạt động" : "Tắt toàn bộ âm thanh"} active={isSound} onToggle={toggleSound} color="cyan" /></div>
                         <div className={`space-y-6 ${!isSound ? 'opacity-40 pointer-events-none filter grayscale' : ''}`}>
                            <div className="relative pl-4 border-l border-cyan-500/30">
-                              <CyberSlider label="Nhạc nền (BGM)" value={bgmVolume} min={0} max={100} step={5} onChange={(e) => setBgmVolume(parseInt(e.target.value))} valueLabel={`${bgmVolume}%`} color="fuchsia" />
-                              <CyberSlider label="Hiệu ứng (SFX)" value={sfxVolume} min={0} max={100} step={5} onChange={(e) => setSfxVolume(parseInt(e.target.value))} valueLabel={`${sfxVolume}%`} color="emerald" />
+                             <CyberSlider label="Nhạc nền (BGM)" value={bgmVolume} min={0} max={100} step={5} onChange={(e) => setBgmVolume(parseInt(e.target.value))} valueLabel={`${bgmVolume}%`} color="fuchsia" />
+                             <CyberSlider label="Hiệu ứng (SFX)" value={sfxVolume} min={0} max={100} step={5} onChange={(e) => setSfxVolume(parseInt(e.target.value))} valueLabel={`${sfxVolume}%`} color="emerald" />
                            </div>
                         </div>
                      </motion.div>
