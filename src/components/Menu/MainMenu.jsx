@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import SettingsModal from '../UI/SettingsModal';
+import { IconRocket, IconBook, IconTrophy, IconSettings, IconUser, IconArrowRight } from '../UI/Icons';
 
 // --- Background Component ---
 const CyberBackground = () => (
@@ -23,7 +24,7 @@ const CyberBackground = () => (
   </div>
 );
 
-const MainMenu = ({ onStart, onTutorial, onGoHome, onGoGuide }) => {
+const MainMenu = ({ onStart, onTutorial, onLeaderboard, onAbout, onGoHome, onGoGuide }) => {
   const [showSettings, setShowSettings] = useState(false);
 
   // State giả lập cho Settings
@@ -126,7 +127,7 @@ const MainMenu = ({ onStart, onTutorial, onGoHome, onGoGuide }) => {
         
         <MenuButton 
           label="Bắt đầu" 
-          icon="🚀" 
+          icon={<IconRocket className="w-6 h-6" />}
           color="green" 
           onClick={onStart} 
           delay={0.1}
@@ -134,7 +135,7 @@ const MainMenu = ({ onStart, onTutorial, onGoHome, onGoGuide }) => {
 
         <MenuButton 
           label="Hướng dẫn" 
-          icon="📖" 
+          icon={<IconBook className="w-6 h-6" />}
           color="cyan" 
           onClick={onTutorial} 
           delay={0.2}
@@ -142,15 +143,15 @@ const MainMenu = ({ onStart, onTutorial, onGoHome, onGoGuide }) => {
 
         <MenuButton 
           label="Bảng xếp hạng" 
-          icon="🏆" 
+          icon={<IconTrophy className="w-6 h-6" />}
           color="yellow" 
-          onClick={() => showNotImpl('Ranking')} 
+          onClick={onLeaderboard}
           delay={0.3}
         />
 
         <MenuButton 
           label="Cài đặt" 
-          icon="⚙️" 
+          icon={<IconSettings className="w-6 h-6" />}
           color="cyan" 
           onClick={() => setShowSettings(true)} 
           delay={0.4}
@@ -158,9 +159,9 @@ const MainMenu = ({ onStart, onTutorial, onGoHome, onGoGuide }) => {
 
         <MenuButton 
           label="Tác giả" 
-          icon="👨‍💻" 
+          icon={<IconUser className="w-6 h-6" />}
           color="red" 
-          onClick={() => alert("Dev: [Your Name] - Internship 2025")} 
+          onClick={onAbout}
           delay={0.5}
         />
 

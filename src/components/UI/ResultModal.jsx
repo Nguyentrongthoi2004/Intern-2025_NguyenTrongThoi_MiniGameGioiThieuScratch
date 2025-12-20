@@ -1,8 +1,9 @@
 // src/components/UI/ResultModal.jsx
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IconStar, IconSkull, IconHome, IconSettings, IconRefresh, IconNext } from './Icons';
 
-const ResultModal = ({ type, message, theme, stats, onHome, onReplay, onOpenSettings }) => {
+const ResultModal = ({ type, message, theme, stats, onHome, onReplay, onOpenSettings, onNextLevel }) => {
   const isDark = theme === 'dark';
   const isWin = type === 'win';
 
@@ -65,13 +66,13 @@ const ResultModal = ({ type, message, theme, stats, onHome, onReplay, onOpenSett
               <div className="relative flex items-center justify-center mt-1 mb-3">
                 {isWin ? (
                   <div className="flex gap-2">
-                    <span className="text-3xl drop-shadow-[0_0_10px_rgba(250,250,110,0.9)]">⭐</span>
-                    <span className="text-3xl drop-shadow-[0_0_10px_rgba(250,250,110,0.9)]">⭐</span>
-                    <span className="text-3xl drop-shadow-[0_0_10px_rgba(250,250,110,0.9)]">⭐</span>
+                    <IconStar filled className="w-8 h-8 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,250,110,0.9)]" />
+                    <IconStar filled className="w-8 h-8 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,250,110,0.9)]" />
+                    <IconStar filled className="w-8 h-8 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,250,110,0.9)]" />
                   </div>
                 ) : (
                   <div className="flex items-center justify-center w-14 h-14 rounded-full bg-slate-900/70 border border-slate-500 shadow-[0_0_20px_rgba(15,23,42,0.8)]">
-                    <span className="text-3xl">💀</span>
+                    <IconSkull className="w-8 h-8 text-slate-300" />
                   </div>
                 )}
               </div>
@@ -153,22 +154,31 @@ const ResultModal = ({ type, message, theme, stats, onHome, onReplay, onOpenSett
                   onClick={onHome}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full bg-slate-900/80 border border-slate-500/60 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-100 hover:border-amber-300 hover:text-amber-300 hover:shadow-[0_0_18px_rgba(251,191,36,0.6)] transition-all"
                 >
-                  <span>🏠</span> <span>HOME</span>
+                  <IconHome className="w-4 h-4" /> <span>HOME</span>
                 </button>
 
                 <button
                   onClick={onOpenSettings}
                   className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full bg-slate-900/80 border border-slate-500/60 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-100 hover:border-cyan-300 hover:text-cyan-300 hover:shadow-[0_0_18px_rgba(34,211,238,0.6)] transition-all"
                 >
-                  <span>⚙️</span> <span>SETTINGS</span>
+                  <IconSettings className="w-4 h-4" /> <span>SETTINGS</span>
                 </button>
 
-                <button
-                  onClick={onReplay}
-                  className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full bg-emerald-400 text-slate-900 text-[11px] font-extrabold uppercase tracking-[0.18em] shadow-[0_10px_28px_rgba(16,185,129,0.7)] hover:brightness-110 hover:-translate-y-[1px] active:translate-y-0 active:shadow-[0_6px_18px_rgba(16,185,129,0.7)] transition-all"
-                >
-                  <span>🔁</span> <span>REFRESH</span>
-                </button>
+                {isWin && onNextLevel ? (
+                   <button
+                    onClick={onNextLevel}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full bg-orange-500 text-white text-[11px] font-extrabold uppercase tracking-[0.18em] shadow-[0_10px_28px_rgba(249,115,22,0.7)] hover:brightness-110 hover:-translate-y-[1px] active:translate-y-0 active:shadow-[0_6px_18px_rgba(249,115,22,0.7)] transition-all"
+                  >
+                    <IconNext className="w-4 h-4" /> <span>NEXT</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={onReplay}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full bg-emerald-400 text-slate-900 text-[11px] font-extrabold uppercase tracking-[0.18em] shadow-[0_10px_28px_rgba(16,185,129,0.7)] hover:brightness-110 hover:-translate-y-[1px] active:translate-y-0 active:shadow-[0_6px_18px_rgba(16,185,129,0.7)] transition-all"
+                  >
+                    <IconRefresh className="w-4 h-4" /> <span>REFRESH</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>

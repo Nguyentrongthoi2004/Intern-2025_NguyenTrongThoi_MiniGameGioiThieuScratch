@@ -1,6 +1,7 @@
 // src/components/UI/SettingsModal.jsx
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { IconSettings, IconEye, IconHome, IconBook, IconLightning } from './Icons';
 
 // ==========================================
 // 0. UTILS & DECORATIONS
@@ -103,8 +104,8 @@ const SettingsModal = ({
 }) => {
   const [activeTab, setActiveTab] = useState('general');
   const tabs = [
-    { id: 'general', label: 'HỆ THỐNG', icon: '⚡' },
-    { id: 'visual', label: 'ĐỒ HỌA', icon: '👁️' },
+    { id: 'general', label: 'HỆ THỐNG', icon: <IconLightning className="w-4 h-4" /> },
+    { id: 'visual', label: 'ĐỒ HỌA', icon: <IconEye className="w-4 h-4" /> },
     { id: 'audio', label: 'ÂM THANH', icon: '🔊' },
   ];
 
@@ -132,7 +133,9 @@ const SettingsModal = ({
           <div className="w-[260px] relative z-10 flex flex-col bg-[#050b1a]/60 backdrop-blur-sm border-r border-white/5">
             <div className="p-8 pb-6">
               <div className="flex items-center gap-3 mb-1">
-                <div className="flex items-center justify-center w-8 h-8 rounded shadow-lg bg-gradient-to-br from-cyan-400 to-blue-600"><span className="text-lg font-black text-white">S</span></div>
+                <div className="flex items-center justify-center w-8 h-8 rounded shadow-lg bg-gradient-to-br from-cyan-400 to-blue-600">
+                  <IconSettings className="w-5 h-5 text-white animate-spin-slow" />
+                </div>
                 <h2 className="text-xl font-black text-white tracking-[0.2em] uppercase">CÀI ĐẶT</h2>
               </div>
               <p className="text-[9px] text-slate-500 font-bold tracking-widest uppercase pl-1">Version 2.5.0</p>
@@ -155,12 +158,12 @@ const SettingsModal = ({
             <div className="p-4 mt-auto border-t border-white/5 bg-[#030712]/40">
                <div className="grid grid-cols-2 gap-2">
                   <button onClick={onHome} className="flex flex-col items-center justify-center gap-1 p-3 transition-all border rounded-lg border-slate-800 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-600 group/act">
-                    <span className="text-lg transition-all opacity-60 group-hover/act:opacity-100 group-hover/act:scale-110">🏠</span>
+                    <IconHome className="w-5 h-5 text-slate-500 transition-all opacity-60 group-hover/act:opacity-100 group-hover/act:scale-110 group-hover/act:text-slate-300" />
                     <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider group-hover/act:text-slate-300">Home</span>
                   </button>
                   
                   <button onClick={onOpenGuide} className="flex flex-col items-center justify-center gap-1 p-3 transition-all border rounded-lg border-slate-800 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-600 group/act">
-                    <span className="text-lg transition-all opacity-60 group-hover/act:opacity-100 group-hover/act:scale-110">📖</span>
+                    <IconBook className="w-5 h-5 text-slate-500 transition-all opacity-60 group-hover/act:opacity-100 group-hover/act:scale-110 group-hover/act:text-slate-300" />
                     <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider group-hover/act:text-slate-300">Guide</span>
                   </button>
                </div>

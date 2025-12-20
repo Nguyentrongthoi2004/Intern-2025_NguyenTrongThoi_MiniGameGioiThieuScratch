@@ -1,6 +1,7 @@
 // src/components/Game/GamePanel.jsx
 import React from 'react';
 import Block from '../Block/Block';
+import { IconHeart } from '../UI/Icons';
 
 const GamePanel = React.memo(({
   theme,
@@ -96,7 +97,11 @@ const GamePanel = React.memo(({
                           : 'scale-75 opacity-25 grayscale'
                       }`}
                     >
-                      {i < lives ? '❤️' : '🖤'}
+                      {i < lives ? (
+                        <IconHeart filled className="w-5 h-5 text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                      ) : (
+                        <IconHeart className="w-5 h-5 text-slate-600" />
+                      )}
                     </span>
                   ))}
                 </div>

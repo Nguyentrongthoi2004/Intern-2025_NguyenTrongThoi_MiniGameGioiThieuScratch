@@ -78,7 +78,7 @@ const ThemeDecorations = React.memo(ThemeDecorationsComponent);
 ThemeDecorations.displayName = 'ThemeDecorations';
 
 // ================== GAME SCREEN ==================
-const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale }) => {
+const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNextLevel }) => {
   
   // State mới: Refresh Key dùng để ép buộc random lại level
   const [refreshKey, setRefreshKey] = useState(0);
@@ -617,7 +617,20 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale }) =>
             setSfxVolume={setSfxVolume}
           />
         )}
-        {modal && !showSettings && <ResultModal type={modal.type} message={modal.message} theme={theme} stats={stats} onHome={onBack} onReplay={restartGame} onOpenSettings={()=>setShowSettings(true)} />}
+        {modal && !showSettings && (
+          <ResultModal
+            type={modal.type}
+            message={modal.message}
+            theme={theme}
+            stats={stats}
+            onHome={onBack}
+            onReplay={restartGame}
+            onOpenSettings={()=>setShowSettings(true)}
+            onNextLevel={
+              (modal.type === 'win' && difficulty !== 'hard') ? onNextLevel : null
+            }
+          />
+        )}
       </AnimatePresence>
     </motion.div>
   );

@@ -5,6 +5,8 @@ import MainMenu from './components/Menu/MainMenu';
 import DifficultySelection from './components/Menu/DifficultySelection';
 import CharacterSelection from './components/Menu/CharacterSelection';
 import TutorialScreen from './components/Tutorial/TutorialScreen';
+import LeaderboardScreen from './components/Menu/LeaderboardScreen';
+import AboutScreen from './components/Menu/AboutScreen';
 import MouseTrail from './components/UI/MouseTrail';
 
 function App() {
@@ -18,6 +20,29 @@ function App() {
   // Hàm "Dịch chuyển"
   const goHome = () => setCurrentScreen('menu');
   const goGuide = () => setCurrentScreen('tutorial');
+  const goLeaderboard = () => setCurrentScreen('leaderboard');
+  const goAbout = () => setCurrentScreen('about');
+
+  // Xử lý chuyển level tiếp theo
+  const handleNextLevel = () => {
+    if (difficulty === 'easy') setDifficulty('normal');
+    else if (difficulty === 'normal') setDifficulty('hard');
+    // Restart game with new difficulty
+    // Note: React state update might batch, so we might need to force remount or ensure GameScreen picks it up.
+    // GameScreen takes 'difficulty' as prop, so it should re-render if key changes or internal logic resets.
+    // However, GameScreen manages its own state (lives, level).
+    // Safest way is to unmount GameScreen briefly or force reset.
+    // But simply changing state here works if GameScreen listens to difficulty change.
+    // To ensure full reset, we can toggle a key.
+    setCurrentScreen('menu'); // Reset to menu briefly? No, user wants to play next level immediately.
+    // Better: Just set Difficulty. But GameScreen needs to reset.
+    // Let's rely on GameScreen to handle "restart" via key change.
+    // Or we can modify GameScreen to accept a "key" prop that we increment.
+    setTimeout(() => setCurrentScreen('game'), 0);
+  };
+
+  // Trick to force remount GameScreen when difficulty changes significantly if needed.
+  // Using a key on GameScreen helps.
 
   return (
     // Áp dụng scale cho toàn bộ ứng dụng (nếu bạn muốn zoom cả app)
@@ -34,6 +59,8 @@ function App() {
         <MainMenu 
           onStart={() => setCurrentScreen('character')} 
           onTutorial={goGuide} 
+          onLeaderboard={goLeaderboard}
+          onAbout={goAbout}
           onGoHome={goHome} 
           onGoGuide={goGuide}
           
@@ -68,10 +95,12 @@ function App() {
       {currentScreen === 'game' && (
         <div className="relative h-full">
           <GameScreen 
+            key={`${difficulty}-${character}`} // Force remount on diff change
             difficulty={difficulty} 
             characterId={character}
             onBack={goHome} 
             onGoGuide={goGuide}
+            onNextLevel={handleNextLevel}
             
             // --- QUAN TRỌNG: Truyền setUiScale xuống ---
             setUiScale={setUiScale}
@@ -89,6 +118,16 @@ function App() {
           // --- QUAN TRỌNG: Truyền setUiScale xuống ---
           setUiScale={setUiScale}
         />
+      )}
+
+      {/* 7. BẢNG XẾP HẠNG */}
+      {currentScreen === 'leaderboard' && (
+        <LeaderboardScreen onBack={goHome} />
+      )}
+
+      {/* 8. GIỚI THIỆU */}
+      {currentScreen === 'about' && (
+        <AboutScreen onBack={goHome} />
       )}
 
     </div>
