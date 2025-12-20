@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import SettingsModal from '../UI/SettingsModal';
+import { IconRocket, IconBook, IconTrophy, IconSettings, IconUser, IconArrowRight } from '../UI/Icons';
 
 // --- Background Component ---
 const CyberBackground = () => (
@@ -19,24 +20,41 @@ const CyberBackground = () => (
     <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px]" />
     
     {/* Scanline effect */}
-    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 pointer-events-none" />
+    <div className="absolute inset-0 bg-[url('assets/images/ui/noise.svg')] opacity-5 pointer-events-none" />
   </div>
 );
 
-const MainMenu = ({ onStart, onTutorial, onGoHome, onGoGuide }) => {
+const MainMenu = ({
+  onStart, onContinue, onTutorial, onLeaderboard, onAbout, onShop, onGoHome, onGoGuide,
+  uiScale, setUiScale, bgmVolume, setBgmVolume, sfxVolume, setSfxVolume, enableSound, setEnableSound
+}) => {
   const [showSettings, setShowSettings] = useState(false);
+  const [hasSaveFile, setHasSaveFile] = useState(false);
 
-  // State giả lập cho Settings
-  const [settings, setSettings] = useState({
+  React.useEffect(() => {
+    const save = localStorage.getItem('scratch_game_save');
+    if (save) {
+      try {
+        const parsed = JSON.parse(save);
+        // Simple validation
+        if (parsed && parsed.lives > 0) {
+          setHasSaveFile(true);
+        }
+      } catch (e) {
+        console.error("Save file corrupted");
+      }
+    }
+  }, []);
+
+  // Visual settings (still local to Menu for now, or can be global if needed)
+  const [localSettings, setLocalSettings] = useState({
     isBlur: true,
-    isSound: true,
     isLowEffects: false,
     fxDensity: 60,
-    uiScale: 1,
   });
 
-  const updateSetting = (key, value) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+  const updateLocalSetting = (key, value) => {
+    setLocalSettings(prev => ({ ...prev, [key]: value }));
   };
 
   const handleOpenGuideFromSettings = () => {
@@ -51,10 +69,6 @@ const MainMenu = ({ onStart, onTutorial, onGoHome, onGoGuide }) => {
   const handleGoHomeFromSettings = () => {
       setShowSettings(false);
       if (onGoHome) onGoHome();
-  };
-
-  const showNotImpl = (feature) => {
-    alert(`System Notice: Feature [${feature}] is under construction.`);
   };
 
   // Nút bấm Cyberpunk
@@ -124,9 +138,19 @@ const MainMenu = ({ onStart, onTutorial, onGoHome, onGoGuide }) => {
       {/* --- MENU BUTTONS --- */}
       <div className="relative z-10 w-full max-w-sm px-6">
         
+        {hasSaveFile && (
+          <MenuButton
+            label="Tiếp tục"
+            icon={<IconRocket className="w-6 h-6" />}
+            color="yellow"
+            onClick={onContinue}
+            delay={0.05}
+          />
+        )}
+
         <MenuButton 
-          label="Bắt đầu" 
-          icon="🚀" 
+          label="Bắt đầu mới"
+          icon={<IconRocket className="w-6 h-6" />}
           color="green" 
           onClick={onStart} 
           delay={0.1}
@@ -134,34 +158,42 @@ const MainMenu = ({ onStart, onTutorial, onGoHome, onGoGuide }) => {
 
         <MenuButton 
           label="Hướng dẫn" 
-          icon="📖" 
+          icon={<IconBook className="w-6 h-6" />}
           color="cyan" 
           onClick={onTutorial} 
           delay={0.2}
         />
 
         <MenuButton 
-          label="Bảng xếp hạng" 
-          icon="🏆" 
+          label="Cửa Hàng"
+          icon={<span className="text-xl">🛒</span>}
           color="yellow" 
-          onClick={() => showNotImpl('Ranking')} 
+          onClick={onShop}
           delay={0.3}
         />
 
-        <MenuButton 
-          label="Cài đặt" 
-          icon="⚙️" 
-          color="cyan" 
-          onClick={() => setShowSettings(true)} 
+        <MenuButton
+          label="Bảng xếp hạng"
+          icon={<IconTrophy className="w-6 h-6" />}
+          color="cyan"
+          onClick={onLeaderboard}
           delay={0.4}
         />
 
         <MenuButton 
-          label="Tác giả" 
-          icon="👨‍💻" 
-          color="red" 
-          onClick={() => alert("Dev: [Your Name] - Internship 2025")} 
+          label="Cài đặt" 
+          icon={<IconSettings className="w-6 h-6" />}
+          color="cyan" 
+          onClick={() => setShowSettings(true)} 
           delay={0.5}
+        />
+
+        <MenuButton 
+          label="Tác giả" 
+          icon={<IconUser className="w-6 h-6" />}
+          color="red" 
+          onClick={onAbout}
+          delay={0.6}
         />
 
       </div>
@@ -183,16 +215,23 @@ const MainMenu = ({ onStart, onTutorial, onGoHome, onGoGuide }) => {
             onHome={handleGoHomeFromSettings}
             onOpenGuide={handleOpenGuideFromSettings}
             
-            isBlur={settings.isBlur}
-            toggleBlur={() => updateSetting('isBlur', !settings.isBlur)}
-            isSound={settings.isSound}
-            toggleSound={() => updateSetting('isSound', !settings.isSound)}
-            isLowEffects={settings.isLowEffects}
-            toggleLowEffects={() => updateSetting('isLowEffects', !settings.isLowEffects)}
-            fxDensity={settings.fxDensity}
-            onChangeFxDensity={(val) => updateSetting('fxDensity', val)}
-            uiScale={settings.uiScale}
-            setUiScale={(val) => updateSetting('uiScale', val)}
+            // Visuals
+            isBlur={localSettings.isBlur}
+            toggleBlur={() => updateLocalSetting('isBlur', !localSettings.isBlur)}
+            isLowEffects={localSettings.isLowEffects}
+            toggleLowEffects={() => updateLocalSetting('isLowEffects', !localSettings.isLowEffects)}
+            fxDensity={localSettings.fxDensity}
+            onChangeFxDensity={(val) => updateLocalSetting('fxDensity', val)}
+
+            // Global State passed down
+            uiScale={uiScale}
+            setUiScale={setUiScale}
+            bgmVolume={bgmVolume}
+            setBgmVolume={setBgmVolume}
+            sfxVolume={sfxVolume}
+            setSfxVolume={setSfxVolume}
+            isSound={enableSound}
+            toggleSound={() => setEnableSound(!enableSound)}
         />
       )}
 
