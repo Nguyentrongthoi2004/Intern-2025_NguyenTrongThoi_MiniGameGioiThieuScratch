@@ -1,5 +1,5 @@
 // src/components/UI/SettingsModal.jsx
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react'; // Bỏ React và useEffect thừa
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconSettings, IconEye, IconHome, IconBook, IconLightning } from './Icons';
 
@@ -99,7 +99,10 @@ const SettingsModal = ({
   fxDensity, onChangeFxDensity,
   uiScale, setUiScale,
   onHome,
-  onOpenGuide, // <--- Quan trọng: Prop này sẽ nhận hàm chuyển trang từ MainMenu
+  onOpenGuide,
+  // --- ĐÃ THÊM CÁC PROPS NÀY ĐỂ SỬA LỖI ---
+  bgmVolume = 50, setBgmVolume = () => {}, 
+  sfxVolume = 50, setSfxVolume = () => {},
 }) => {
   const [activeTab, setActiveTab] = useState('general');
   const tabs = [

@@ -1,9 +1,56 @@
 // src/components/Menu/AboutScreen.jsx
-import React from 'react';
-import { motion } from 'framer-motion';
-import { IconUser } from '../UI/Icons';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { IconUser, IconMusic, IconImage, IconGrid, IconVolume2, IconPlay } from '../UI/Icons';
+import Block from '../Block/Block';
+import ResultModal from '../UI/ResultModal';
 
-// ... (Giữ nguyên các component con: CyberBackground, TabButton, SectionContainer) ...
+// --- DATA DEFINITIONS ---
+
+const CHARACTERS = [
+  { id: 'pink', name: 'Pink Monster', file: 'Pink_Monster_Idle_4.png' },
+  { id: 'owlet', name: 'Owlet Monster', file: 'Owlet_Monster_Idle_4.png' },
+  { id: 'dude', name: 'Dude Monster', file: 'Dude_Monster_Idle_4.png' },
+];
+
+const SOUNDS = [
+  { name: 'Background Music', file: 'bg.mp3' },
+  { name: 'Pop', file: 'pop.mp3' },
+  { name: 'Win', file: 'win.mp3' },
+  { name: 'Lose', file: 'lose.mp3' },
+  { name: 'Jump', file: 'jump.mp3' },
+  { name: 'Climb', file: 'climb.mp3' },
+  { name: 'Hurt', file: 'hurt.mp3' },
+  { name: 'Move', file: 'move.mp3' },
+];
+
+const BLOCKS = [
+  { type: 'motion', text: 'Move Right 1' },
+  { type: 'motion', text: 'Move Left 1' },
+  { type: 'motion', text: 'Move Up 1' },
+  { type: 'motion', text: 'Move Down 1' },
+  { type: 'motion', text: 'Turn Left' },
+  { type: 'motion', text: 'Turn Right' },
+  { type: 'motion', text: 'Jump' },
+  { type: 'motion', text: 'Go Home' },
+  { type: 'events', text: 'On Flag' },
+  { type: 'events', text: 'On Click' },
+  { type: 'events', text: 'On Bump' },
+  { type: 'looks', text: 'Say Hello' },
+  { type: 'looks', text: 'Hide' },
+  { type: 'looks', text: 'Show' },
+  { type: 'sound', text: 'Play Pop' },
+  { type: 'control', text: 'Wait 1s' },
+  { type: 'control', text: 'Repeat 3' },
+  { type: 'control', text: 'Stop' },
+];
+
+const BACKGROUNDS = [
+    { name: 'Noise Texture', file: 'ui/noise.svg' }
+]
+
+// --- COMPONENTS ---
+
 const CyberBackground = () => (
   <div className="absolute inset-0 z-0 overflow-hidden bg-[#020617]">
     <div
@@ -70,21 +117,14 @@ const AboutScreen = ({ onBack }) => {
           <h1 className="text-3xl font-black tracking-tighter text-transparent uppercase bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
             Game Report
           </h1>
-
-        <div className="space-y-4 text-slate-300">
-          <p className="text-lg leading-relaxed">
-            Chào mừng bạn đến với <strong className="text-cyan-300">Scratch Logic Master</strong>!
-          </p>
-          <p>
-            Đây là dự án thực tập năm 2025, được xây dựng với mục tiêu giúp người chơi rèn luyện tư duy lập trình thông qua các khối lệnh Scratch quen thuộc.
-          </p>
-
-          <div className="my-8 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-          <div className="flex flex-col items-center gap-2">
-            <IconUser className="w-12 h-12 text-cyan-300" />
-            <h3 className="text-xl font-bold text-white">Developer</h3>
-            <p className="font-mono text-sm text-cyan-400">Internship 2025</p>
+          
+          <div className="flex w-full gap-2 pb-2 mt-4 overflow-x-auto md:mt-0 md:w-auto md:pb-0 scrollbar-hide">
+            <TabButton active={activeTab === 'author'} onClick={() => setActiveTab('author')} icon={IconUser} label="Tác giả" />
+            <TabButton active={activeTab === 'ui_showcase'} onClick={() => setActiveTab('ui_showcase')} icon={IconImage} label="UI/UX" />
+            <TabButton active={activeTab === 'chars'} onClick={() => setActiveTab('chars')} icon={IconUser} label="Nhân vật" />
+            <TabButton active={activeTab === 'audio'} onClick={() => setActiveTab('audio')} icon={IconMusic} label="Âm thanh" />
+            <TabButton active={activeTab === 'blocks'} onClick={() => setActiveTab('blocks')} icon={IconGrid} label="Blocks" />
+            <TabButton active={activeTab === 'bg'} onClick={() => setActiveTab('bg')} icon={IconImage} label="Background" />
           </div>
         </div>
 
@@ -96,25 +136,25 @@ const AboutScreen = ({ onBack }) => {
             {activeTab === 'author' && (
               <SectionContainer key="author">
                 <div className="flex flex-col items-center justify-center h-full space-y-6 text-center">
-                   <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 p-[2px] shadow-[0_0_30px_rgba(6,182,212,0.4)]">
-                     <div className="flex items-center justify-center w-full h-full rounded-full bg-slate-900">
-                        <IconUser className="w-12 h-12 text-cyan-300" />
-                     </div>
-                   </div>
-                   
-                   <div className="space-y-2">
-                     <h2 className="text-3xl font-bold text-white">Scratch Logic Master</h2>
-                     <p className="font-mono text-cyan-400">Dự án thực tập 2025</p>
-                   </div>
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 p-[2px] shadow-[0_0_30px_rgba(6,182,212,0.4)]">
+                      <div className="flex items-center justify-center w-full h-full rounded-full bg-slate-900">
+                         <IconUser className="w-12 h-12 text-cyan-300" />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-bold text-white">Scratch Logic Master</h2>
+                      <p className="font-mono text-cyan-400">Dự án thực tập 2025</p>
+                    </div>
 
-                   <div className="max-w-2xl text-lg leading-relaxed text-slate-300">
-                     <p>
-                       Trò chơi được xây dựng nhằm mục đích giáo dục, giúp người chơi làm quen với tư duy lập trình logic thông qua giao diện kéo thả trực quan.
-                     </p>
-                     <p className="mt-4">
-                       Toàn bộ assets (hình ảnh, âm thanh) và mã nguồn được tổng hợp và tối ưu hóa để chạy mượt mà trên nền tảng Web.
-                     </p>
-                   </div>
+                    <div className="max-w-2xl text-lg leading-relaxed text-slate-300">
+                      <p>
+                        Trò chơi được xây dựng nhằm mục đích giáo dục, giúp người chơi làm quen với tư duy lập trình logic thông qua giao diện kéo thả trực quan.
+                      </p>
+                      <p className="mt-4">
+                        Toàn bộ assets (hình ảnh, âm thanh) và mã nguồn được tổng hợp và tối ưu hóa để chạy mượt mà trên nền tảng Web.
+                      </p>
+                    </div>
                 </div>
               </SectionContainer>
             )}
