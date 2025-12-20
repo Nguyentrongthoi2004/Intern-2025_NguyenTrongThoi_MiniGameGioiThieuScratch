@@ -24,8 +24,24 @@ const CyberBackground = () => (
   </div>
 );
 
-const MainMenu = ({ onStart, onTutorial, onLeaderboard, onAbout, onGoHome, onGoGuide }) => {
+const MainMenu = ({ onStart, onContinue, onTutorial, onLeaderboard, onAbout, onGoHome, onGoGuide }) => {
   const [showSettings, setShowSettings] = useState(false);
+  const [hasSaveFile, setHasSaveFile] = useState(false);
+
+  React.useEffect(() => {
+    const save = localStorage.getItem('scratch_game_save');
+    if (save) {
+      try {
+        const parsed = JSON.parse(save);
+        // Simple validation
+        if (parsed && parsed.lives > 0) {
+          setHasSaveFile(true);
+        }
+      } catch (e) {
+        console.error("Save file corrupted");
+      }
+    }
+  }, []);
 
   // State giả lập cho Settings
   const [settings, setSettings] = useState({
@@ -125,8 +141,18 @@ const MainMenu = ({ onStart, onTutorial, onLeaderboard, onAbout, onGoHome, onGoG
       {/* --- MENU BUTTONS --- */}
       <div className="relative z-10 w-full max-w-sm px-6">
         
+        {hasSaveFile && (
+          <MenuButton
+            label="Tiếp tục"
+            icon={<IconRocket className="w-6 h-6" />}
+            color="yellow"
+            onClick={onContinue}
+            delay={0.05}
+          />
+        )}
+
         <MenuButton 
-          label="Bắt đầu" 
+          label="Bắt đầu mới"
           icon={<IconRocket className="w-6 h-6" />}
           color="green" 
           onClick={onStart} 

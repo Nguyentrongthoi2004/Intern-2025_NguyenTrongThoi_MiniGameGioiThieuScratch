@@ -3,9 +3,10 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconStar, IconSkull, IconHome, IconSettings, IconRefresh, IconNext } from './Icons';
 
-const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, onHome, onReplay, onOpenSettings, onNextLevel }) => {
+const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, onHome, onReplay, onOpenSettings, onNextLevel, onStartReview }) => {
   const isDark = theme === 'dark';
   const isWin = type === 'win';
+  const isReview = type === 'review_start';
 
   const totalQuestions = stats?.total ?? 0;
   const correct = stats?.correct ?? 0;
@@ -13,9 +14,19 @@ const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, o
   const totalAnswered = correct + wrong;
   const accuracy = totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
 
-  const subtitle = isWin
-    ? 'Bạn đã hoàn thành chặng code này! Tiếp tục chinh phục level mới nhé.'
-    : 'Bạn đã hết mạng ở chặng này. Thử lại và cải thiện kết quả lần sau!';
+  let subtitle = '';
+  if (isWin) subtitle = 'Bạn đã hoàn thành chặng code này! Tiếp tục chinh phục level mới nhé.';
+  else if (isReview) subtitle = 'Đã đến lúc ôn tập! Hoàn thành lại các câu sai để lấy điểm tuyệt đối.';
+  else subtitle = 'Bạn đã hết mạng ở chặng này. Thử lại và cải thiện kết quả lần sau!';
+
+  // Theme Colors
+  const bgGradient = isGoldenWin
+    ? 'from-yellow-600 via-amber-500 to-orange-600' // Gold
+    : 'from-purple-600 via-fuchsia-600 to-indigo-600'; // Default Purple
+
+  const innerBgGradient = isGoldenWin
+    ? 'from-yellow-700/90 via-amber-600/90 to-orange-700/90'
+    : 'from-purple-700/90 via-violet-700/90 to-indigo-800/90';
 
   return (
     <AnimatePresence>
@@ -42,9 +53,9 @@ const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, o
           exit={{ scale: 0.8, opacity: 0, y: 20 }}
           transition={{ type: 'spring', stiffness: 260, damping: 20 }}
         >
-          <div className="relative rounded-[2.2rem] bg-gradient-to-br from-purple-600 via-fuchsia-600 to-indigo-600 p-1 shadow-[0_24px_80px_rgba(0,0,0,0.75)]">
+          <div className={`relative rounded-[2.2rem] bg-gradient-to-br ${bgGradient} p-1 shadow-[0_24px_80px_rgba(0,0,0,0.75)]`}>
             {/* nền sọc chéo */}
-            <div className="rounded-[2rem] overflow-hidden bg-gradient-to-br from-purple-700/90 via-violet-700/90 to-indigo-800/90">
+            <div className={`rounded-[2rem] overflow-hidden bg-gradient-to-br ${innerBgGradient}`}>
               <div
                 className="absolute inset-0 opacity-[0.15] pointer-events-none"
                 style={{
@@ -57,7 +68,7 @@ const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, o
               <div className="relative flex items-center justify-center px-6 pt-5 pb-2">
                 <div className="px-6 py-2 rounded-full bg-black/40 border border-white/20 shadow-[0_8px_20px_rgba(15,23,42,0.7)]">
                   <p className="text-[11px] font-black tracking-[0.35em] text-white/80 uppercase text-center">
-                    KẾT QUẢ
+                    {isReview ? 'ÔN TẬP' : 'KẾT QUẢ'}
                   </p>
                 </div>
               </div>
@@ -70,6 +81,10 @@ const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, o
                     <IconStar filled className="w-8 h-8 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,250,110,0.9)]" />
                     <IconStar filled className="w-8 h-8 text-yellow-400 drop-shadow-[0_0_10px_rgba(250,250,110,0.9)]" />
                   </div>
+                ) : isReview ? (
+                   <div className="flex items-center justify-center w-14 h-14 rounded-full bg-slate-900/70 border border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.5)]">
+                    <IconRefresh className="w-8 h-8 text-emerald-300" />
+                  </div>
                 ) : (
                   <div className="flex items-center justify-center w-14 h-14 rounded-full bg-slate-900/70 border border-slate-500 shadow-[0_0_20px_rgba(15,23,42,0.8)]">
                     <IconSkull className="w-8 h-8 text-slate-300" />
@@ -80,11 +95,11 @@ const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, o
               {/* TITLE + SUBTITLE + PILL SUMMARY */}
               <div className="relative px-6 text-center">
                 <p className="text-[11px] font-semibold tracking-[0.28em] text-white/55 uppercase mb-1">
-                  {isWin ? 'CHÚC MỪNG' : 'THỬ LẠI NHÉ'}
+                  {isWin ? 'CHÚC MỪNG' : isReview ? 'SỬA LỖI' : 'THỬ LẠI NHÉ'}
                 </p>
 
                 <p className="text-xl font-extrabold tracking-[0.22em] uppercase text-white drop-shadow-[0_4px_14px_rgba(15,23,42,0.8)]">
-                  {isWin ? 'CHIẾN THẮNG!' : 'GAME OVER'}
+                  {isWin ? 'CHIẾN THẮNG!' : isReview ? 'CƠ HỘI CUỐI' : 'GAME OVER'}
                 </p>
 
                 <p className="mt-2 text-[12px] leading-relaxed text-purple-100/85">
@@ -192,7 +207,14 @@ const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, o
                   <IconSettings className="w-4 h-4" /> <span>SETTINGS</span>
                 </button>
 
-                {isWin && onNextLevel ? (
+                {isReview ? (
+                   <button
+                    onClick={onStartReview}
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full bg-emerald-500 text-white text-[11px] font-extrabold uppercase tracking-[0.18em] shadow-[0_10px_28px_rgba(16,185,129,0.7)] hover:brightness-110 hover:-translate-y-[1px] active:translate-y-0 active:shadow-[0_6px_18px_rgba(16,185,129,0.7)] transition-all"
+                  >
+                    <IconRefresh className="w-4 h-4" /> <span>START REVIEW</span>
+                  </button>
+                ) : isWin && onNextLevel ? (
                    <button
                     onClick={onNextLevel}
                     className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-full bg-orange-500 text-white text-[11px] font-extrabold uppercase tracking-[0.18em] shadow-[0_10px_28px_rgba(249,115,22,0.7)] hover:brightness-110 hover:-translate-y-[1px] active:translate-y-0 active:shadow-[0_6px_18px_rgba(249,115,22,0.7)] transition-all"

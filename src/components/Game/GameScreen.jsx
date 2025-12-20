@@ -78,18 +78,31 @@ const ThemeDecorations = React.memo(ThemeDecorationsComponent);
 ThemeDecorations.displayName = 'ThemeDecorations';
 
 // ================== GAME SCREEN ==================
-const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNextLevel }) => {
+const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNextLevel, loadGame }) => {
   
   // State mới: Refresh Key dùng để ép buộc random lại level
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // For saving level order
+  const [levelOrder, setLevelOrder] = useState(null);
+
   // LOGIC CHỌN LEVEL (ĐÃ SỬA: Thêm refreshKey vào dependency để random lại khi replay)
   const gameLevels = useMemo(() => {
     const allForDifficulty = levels.filter((lvl) => lvl.difficulty === difficulty);
+
+    // If we are loading a game and have a saved order
+    if (loadGame && levelOrder && levelOrder.length > 0) {
+       // Reconstruct level list based on ID order
+       const orderedLevels = levelOrder.map(id => allForDifficulty.find(l => l.id === id)).filter(Boolean);
+       if (orderedLevels.length === levelOrder.length) {
+         return orderedLevels;
+       }
+    }
+
     // Xáo trộn mảng câu hỏi thật sự
     const shuffled = [...allForDifficulty].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, 10);
-  }, [difficulty, refreshKey]); // <-- QUAN TRỌNG: refreshKey thay đổi sẽ kích hoạt shuffle lại
+  }, [difficulty, refreshKey, levelOrder, loadGame]); // <-- QUAN TRỌNG: refreshKey thay đổi sẽ kích hoạt shuffle lại
 
   // --- STATE QUẢN LÝ ---
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
@@ -103,6 +116,8 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
   // Detailed Score Tracking for "Metroidvania" progression
   const [scoreDetails, setScoreDetails] = useState({ easy: 0, normal: 0, hard: 0 });
   const [isGoldenWin, setIsGoldenWin] = useState(false);
+  const [wrongAnswers, setWrongAnswers] = useState([]); // List of level objects
+  const [isReviewMode, setIsReviewMode] = useState(false);
 
   const [enableBlur, setEnableBlur] = useState(true);
   const [enableSound, setEnableSound] = useState(true);
@@ -146,7 +161,18 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
   const timeoutsRef = useRef([]);
 
   const containerControls = useAnimation();
-  const currentLevel = gameLevels[currentLevelIndex];
+
+  // Determine active level based on mode
+  const activeLevelData = useMemo(() => {
+     if (isReviewMode && wrongAnswers.length > 0) {
+        // Find the full level object for the first wrong answer
+        const wId = wrongAnswers[0].id || wrongAnswers[0];
+        return levels.find(l => l.id === wId) || gameLevels[0];
+     }
+     return gameLevels[currentLevelIndex];
+  }, [isReviewMode, wrongAnswers, gameLevels, currentLevelIndex]);
+
+  const currentLevel = activeLevelData;
 
   // Helper an toàn để set timeout và tự động track
   const safeSetTimeout = (callback, delay) => {
@@ -231,18 +257,67 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
 
   // --- 4. KHỞI TẠO / RESET ---
   useEffect(() => {
-    // Load saved scores if any (this should ideally be in a parent context or initialized from localStorage)
-    const savedScores = JSON.parse(localStorage.getItem('scratch_game_scores') || '{"easy":0, "normal":0, "hard":0}');
-    setScoreDetails(savedScores);
+    if (loadGame) {
+      // Logic continue
+      try {
+        const save = JSON.parse(localStorage.getItem('scratch_game_save'));
+        if (save) {
+           setScoreDetails(save.scoreDetails || { easy: 0, normal: 0, hard: 0 });
+           setLives(save.lives || 5);
+           setCurrentLevelIndex(save.levelIndex || 0);
+           setWrongAnswers(save.wrongAnswers || []);
+           setStats(save.stats || { correct: 0, wrong: 0, total: 10 });
+           setLevelOrder(save.levelOrder || []);
+           if (save.characterId) setActiveCharacterId(save.characterId);
+        }
+      } catch (e) {
+        console.error("Load failed", e);
+        // Fallback to new game
+        setCurrentLevelIndex(0);
+        setLives(5);
+        setStats({ correct: 0, wrong: 0, total: gameLevels.length });
+      }
+    } else {
+      // New Game
+      const defaultScores = JSON.parse(localStorage.getItem('scratch_game_scores') || '{"easy":0, "normal":0, "hard":0}');
+      setScoreDetails(defaultScores);
 
-    setCurrentLevelIndex(0);
-    setLives(5);
+      setCurrentLevelIndex(0);
+      setLives(5);
+      setWrongAnswers([]);
+      setStats({ correct: 0, wrong: 0, total: gameLevels.length });
+      setIsReviewMode(false);
+    }
+
     resetCharacter();
     setModal(null);
-    setStats({ correct: 0, wrong: 0, total: gameLevels.length });
     setTimeLeft(INITIAL_TIME); // Reset 30s
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
-  }, [difficulty, gameLevels.length]);
+  }, [difficulty]); // remove gameLevels.length dependency
+
+  // Save State Effect
+  useEffect(() => {
+     if (lives <= 0 || modal) return;
+
+     // Only save if we have valid levels
+     if (gameLevels.length > 0) {
+        const saveData = {
+          difficulty,
+          characterId: activeCharacterId,
+          levelIndex: currentLevelIndex,
+          lives,
+          scoreDetails,
+          wrongAnswers,
+          stats,
+          levelOrder: levelOrder || gameLevels.map(l => l.id)
+        };
+        localStorage.setItem('scratch_game_save', JSON.stringify(saveData));
+        // Also ensure levelOrder is set in state if not yet
+        if (!levelOrder && !loadGame) {
+           setLevelOrder(gameLevels.map(l => l.id));
+        }
+     }
+  }, [currentLevelIndex, lives, scoreDetails, wrongAnswers, difficulty, activeCharacterId, stats, gameLevels, levelOrder, loadGame, modal]);
 
   const handleOpenGuide = () => { setShowSettings(false); setShowGuide(true); };
 
@@ -286,7 +361,7 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
 
   // A. Xử lý 1 lệnh đơn lẻ
   const processSingleCommand = (cmd) => {
-    const GRID_SIZE = 40; 
+    const GRID_SIZE = 60; // Tăng kích thước bước đi theo yêu cầu (làm di chuyển dài tí)
     const command = cmd.trim();
     let actionStatus = 'idle';
     
@@ -314,7 +389,10 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
         if (dir === 'right') { next.x += px; next.rotation = 90; }
         if (dir === 'left')  { next.x -= px; next.rotation = -90; }
         if (dir === 'up')    { next.y += px; next.rotation = 0; }
-        if (dir === 'down')  { next.y -= px; next.rotation = 180; }
+        if (dir === 'down')  {
+          next.y -= px;
+          // next.rotation = 180; // Bỏ xoay khi đi xuống theo yêu cầu
+        }
         
         next.x = Math.max(-460, Math.min(460, next.x));
         next.y = Math.max(-240, Math.min(240, next.y));
@@ -486,27 +564,52 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
     setAnswerFeedback(null);
     if (feedbackTimeoutRef.current) clearTimeout(feedbackTimeoutRef.current);
     
-    if (currentLevelIndex < gameLevels.length - 1) {
-      setCurrentLevelIndex(prev => prev + 1);
-      resetCharacter();
-      setTimeLeft(INITIAL_TIME); // Reset 30s cho màn mới
+    // If not in review mode yet
+    if (!isReviewMode) {
+       if (currentLevelIndex < gameLevels.length - 1) {
+         setCurrentLevelIndex(prev => prev + 1);
+         resetCharacter();
+         setTimeLeft(INITIAL_TIME);
+       } else {
+         // Finished standard levels. Check for review.
+         if (wrongAnswers.length > 0) {
+            // ENTER REVIEW MODE
+            setIsReviewMode(true);
+            setModal({ type: 'review_start', message: "Hãy sửa lại các lỗi sai để đạt điểm tuyệt đối!" });
+         } else {
+            finishGame();
+         }
+       }
     } else {
-      // Finished all 10 questions in this set
+       // We are IN Review Mode
+       if (wrongAnswers.length === 0) {
+          finishGame();
+       } else {
+          // Keep looping until wrongAnswers is empty
+          // Since we remove correct answers from `wrongAnswers` immediately,
+          // we just need to ensure UI updates.
+          resetCharacter();
+          setTimeLeft(INITIAL_TIME);
+       }
+    }
+  };
+
+  const finishGame = () => {
       playSfx('win.mp3');
       confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
 
-      // Logic for transition / golden win
       let isGolden = false;
       const { easy, normal, hard } = scoreDetails;
 
+      // Check if max score achieved
       if (difficulty === 'hard' && easy >= 10 && normal >= 10 && hard >= 9) {
-          // If this was the last hard question needed
           isGolden = true;
       }
       setIsGoldenWin(isGolden);
 
       setModal({ type: 'win', message: buildSummaryMessage(true) });
-    }
+      // Clear save on win
+      localStorage.removeItem('scratch_game_save');
   };
 
   const handleBlockClick = (blockId) => {
@@ -519,6 +622,11 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
     if (isCorrect) {
       const newCorrect = stats.correct + 1;
       setStats(prev => ({ ...prev, correct: newCorrect }));
+
+      // If in review mode, remove from wrongAnswers
+      if (isReviewMode) {
+         setWrongAnswers(prev => prev.filter(w => w.id !== currentLevel.id));
+      }
 
       // UPDATE PROGRESSIVE SCORE
       const newScoreDetails = { ...scoreDetails, [difficulty]: Math.min(10, scoreDetails[difficulty] + 1) };
@@ -543,6 +651,15 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
       feedbackTimeoutRef.current = setTimeout(goToNextLevel, waitTime);
     } else {
       setStats(prev => ({ ...prev, wrong: prev.wrong + 1 }));
+
+      // Add to wrong answers if not already there
+      if (!isReviewMode) {
+         setWrongAnswers(prev => {
+            if (prev.some(w => w.id === currentLevel.id)) return prev;
+            return [...prev, { id: currentLevel.id }];
+         });
+      }
+
       const newLives = lives - 1;
       setLives(newLives);
       setAnswerFeedback(null);
@@ -551,6 +668,8 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
       setTimeLeft(prev => Math.max(0, prev - 5));
 
       if (newLives <= 0) {
+        // Clear save on death
+        localStorage.removeItem('scratch_game_save');
         playSfx('lose.mp3');
         setCharacterState(prev => ({ ...prev, status: 'death' }));
         safeSetTimeout(() => setModal({ type: 'gameover', message: buildSummaryMessage(false) }), 1500);
@@ -658,6 +777,9 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
             onNextLevel={
               (modal.type === 'win' && difficulty !== 'hard') ? onNextLevel : null
             }
+            onStartReview={() => {
+              setModal(null);
+            }}
           />
         )}
       </AnimatePresence>

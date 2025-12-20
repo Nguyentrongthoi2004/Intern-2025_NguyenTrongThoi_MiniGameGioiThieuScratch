@@ -13,6 +13,7 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState('menu');
   const [difficulty, setDifficulty] = useState('easy');
   const [character, setCharacter] = useState('pink'); 
+  const [loadGame, setLoadGame] = useState(false);
   
   // 1. THÊM STATE UI SCALE (Mặc định 100%)
   const [uiScale, setUiScale] = useState(100);
@@ -22,6 +23,27 @@ function App() {
   const goGuide = () => setCurrentScreen('tutorial');
   const goLeaderboard = () => setCurrentScreen('leaderboard');
   const goAbout = () => setCurrentScreen('about');
+
+  // Load Game
+  const handleContinue = () => {
+    try {
+      const save = JSON.parse(localStorage.getItem('scratch_game_save'));
+      if (save) {
+        setDifficulty(save.difficulty || 'easy');
+        setCharacter(save.characterId || 'pink');
+        setLoadGame(true);
+        setCurrentScreen('game');
+      }
+    } catch (e) {
+      console.error("Failed to load game", e);
+    }
+  };
+
+  const handleStartNew = () => {
+    setLoadGame(false);
+    localStorage.removeItem('scratch_game_save');
+    setCurrentScreen('character');
+  };
 
   // Xử lý chuyển level tiếp theo
   const handleNextLevel = () => {
@@ -57,7 +79,8 @@ function App() {
       {/* 2. MENU CHÍNH */}
       {currentScreen === 'menu' && (
         <MainMenu 
-          onStart={() => setCurrentScreen('character')} 
+          onStart={handleStartNew}
+          onContinue={handleContinue}
           onTutorial={goGuide} 
           onLeaderboard={goLeaderboard}
           onAbout={goAbout}
@@ -95,9 +118,10 @@ function App() {
       {currentScreen === 'game' && (
         <div className="relative h-full">
           <GameScreen 
-            key={`${difficulty}-${character}`} // Force remount on diff change
+            key={`${difficulty}-${character}-${loadGame ? 'load' : 'new'}`} // Force remount on diff change
             difficulty={difficulty} 
             characterId={character}
+            loadGame={loadGame}
             onBack={goHome} 
             onGoGuide={goGuide}
             onNextLevel={handleNextLevel}
