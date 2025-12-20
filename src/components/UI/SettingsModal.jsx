@@ -1,5 +1,5 @@
 // src/components/UI/SettingsModal.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react'; // Bỏ useEffect vì không dùng
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconSettings, IconEye, IconHome, IconBook, IconLightning } from './Icons';
 
@@ -99,7 +99,12 @@ const SettingsModal = ({
   fxDensity, onChangeFxDensity,
   uiScale, setUiScale,
   onHome,
-  onOpenGuide, // <--- Quan trọng: Prop này sẽ nhận hàm chuyển trang từ MainMenu
+  onOpenGuide,
+  // --- THÊM CÁC PROPS NÀY ĐỂ FIX LỖI ---
+  bgmVolume = 50,      // Giá trị mặc định nếu parent chưa truyền
+  setBgmVolume = () => {}, 
+  sfxVolume = 50,      // Giá trị mặc định
+  setSfxVolume = () => {}
 }) => {
   const [activeTab, setActiveTab] = useState('general');
   const tabs = [
@@ -153,17 +158,16 @@ const SettingsModal = ({
               ))}
             </div>
 
-            {/* Quick Actions Footer - Nơi chứa nút Guide */}
+            {/* Quick Actions Footer */}
             <div className="p-4 mt-auto border-t border-white/5 bg-[#030712]/40">
                <div className="grid grid-cols-2 gap-2">
                   <button onClick={onHome} className="flex flex-col items-center justify-center gap-1 p-3 transition-all border rounded-lg border-slate-800 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-600 group/act">
-                    <IconHome className="w-5 h-5 text-slate-500 transition-all opacity-60 group-hover/act:opacity-100 group-hover/act:scale-110 group-hover/act:text-slate-300" />
+                    <IconHome className="w-5 h-5 transition-all text-slate-500 opacity-60 group-hover/act:opacity-100 group-hover/act:scale-110 group-hover/act:text-slate-300" />
                     <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider group-hover/act:text-slate-300">Home</span>
                   </button>
                   
-                  {/* NÚT GUIDE: Bấm vào sẽ gọi onOpenGuide */}
                   <button onClick={onOpenGuide} className="flex flex-col items-center justify-center gap-1 p-3 transition-all border rounded-lg border-slate-800 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-600 group/act">
-                    <IconBook className="w-5 h-5 text-slate-500 transition-all opacity-60 group-hover/act:opacity-100 group-hover/act:scale-110 group-hover/act:text-slate-300" />
+                    <IconBook className="w-5 h-5 transition-all text-slate-500 opacity-60 group-hover/act:opacity-100 group-hover/act:scale-110 group-hover/act:text-slate-300" />
                     <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider group-hover/act:text-slate-300">Guide</span>
                   </button>
                </div>
@@ -190,15 +194,15 @@ const SettingsModal = ({
                          <div className="relative z-10">
                            <h4 className="inline-block pb-2 mb-6 text-sm font-bold tracking-widest uppercase border-b text-cyan-100 border-white/5">Hiển thị & Giao diện</h4>
                            <div className="flex items-end justify-between mb-2">
-                              <label className="text-xs font-bold tracking-wide uppercase text-slate-300">Độ thu phóng (Zoom)</label>
-                              <span className="font-mono text-xl font-black text-cyan-400">{currentZoom}%</span>
+                             <label className="text-xs font-bold tracking-wide uppercase text-slate-300">Độ thu phóng (Zoom)</label>
+                             <span className="font-mono text-xl font-black text-cyan-400">{currentZoom}%</span>
                            </div>
                            <div className="relative flex items-center h-12 gap-4 px-4 border bg-slate-950 rounded-xl border-slate-800">
-                              <button onClick={() => setUiScale(Math.max(0.8, uiScale - 0.1))} className="text-lg font-bold text-slate-500 hover:text-white">-</button>
-                              <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
-                                 <motion.div className="absolute h-full bg-cyan-500 shadow-[0_0_10px_cyan]" animate={{ width: `${((currentZoom - 80) / 30) * 100}%` }} />
-                              </div>
-                              <button onClick={() => setUiScale(Math.min(1.1, uiScale + 0.1))} className="text-lg font-bold text-slate-500 hover:text-white">+</button>
+                             <button onClick={() => setUiScale(Math.max(0.8, uiScale - 0.1))} className="text-lg font-bold text-slate-500 hover:text-white">-</button>
+                             <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden relative">
+                                <motion.div className="absolute h-full bg-cyan-500 shadow-[0_0_10px_cyan]" animate={{ width: `${((currentZoom - 80) / 30) * 100}%` }} />
+                             </div>
+                             <button onClick={() => setUiScale(Math.min(1.1, uiScale + 0.1))} className="text-lg font-bold text-slate-500 hover:text-white">+</button>
                            </div>
                          </div>
                        </div>

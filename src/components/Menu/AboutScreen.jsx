@@ -1,8 +1,9 @@
 // src/components/Menu/AboutScreen.jsx
-import React from 'react';
+import React, { useState } from 'react'; // 1. Thêm import useState
 import { motion } from 'framer-motion';
 import { IconUser } from '../UI/Icons';
 
+// ... (Giữ nguyên các component con: CyberBackground, TabButton, SectionContainer) ...
 const CyberBackground = () => (
   <div className="absolute inset-0 z-0 overflow-hidden bg-[#020617]">
     <div
@@ -69,6 +70,7 @@ const AboutScreen = ({ onBack }) => {
           <h1 className="text-3xl font-black tracking-tighter text-transparent uppercase bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
             Game Report
           </h1>
+        </div> {/* 2. Đã thêm thẻ đóng div này (trước đó bị thiếu) */}
 
         <div className="space-y-4 text-slate-300">
           <p className="text-lg leading-relaxed">
