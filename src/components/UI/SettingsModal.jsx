@@ -66,11 +66,12 @@ const CyberSlider = ({ value, min, max, step, onChange, label, valueLabel, color
     <div className="relative p-5 mb-4 border rounded-2xl bg-[#0b1120]/60 border-white/5 hover:border-white/10 transition-all group">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className={`w-1 h-1 rounded-full bg-${color}-400 shadow-[0_0_8px_currentColor] animate-pulse`} />
-          <span className="text-xs font-black tracking-[0.15em] text-slate-300 uppercase group-hover:text-white transition-colors">{label}</span>
+          {/* Increased icon visibility */}
+          <div className={`w-2 h-2 rounded-full bg-${color}-400 shadow-[0_0_8px_currentColor] animate-pulse`} />
+          <span className="text-sm font-black tracking-[0.15em] text-slate-200 uppercase group-hover:text-white transition-colors">{label}</span>
         </div>
-        <div className={`flex items-center justify-center min-w-[50px] px-2 py-1 rounded-md border bg-[#020617] border-${color}-500/20`}>
-          <span className={`text-[10px] font-mono font-bold text-${color}-300`}>{valueLabel || value}</span>
+        <div className={`flex items-center justify-center min-w-[60px] px-3 py-1.5 rounded-md border bg-[#020617] border-${color}-500/20`}>
+          <span className={`text-xs font-mono font-bold text-${color}-300`}>{valueLabel || value}</span>
         </div>
       </div>
       <div className="relative flex items-center h-8 cursor-pointer">
@@ -215,7 +216,7 @@ const SettingsModal = ({
                         </div>
                         <div className={`p-6 border border-fuchsia-500/20 rounded-2xl bg-fuchsia-950/10 ${isLowEffects ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
                            <h4 className="flex items-center gap-2 mb-4 text-xs font-black tracking-widest uppercase text-fuchsia-200">Tùy chỉnh nâng cao</h4>
-                           <CyberSlider label="Mật độ hiệu ứng (FX Density)" value={density} min={0} max={100} step={10} onChange={(e) => onChangeFxDensity(parseInt(e.target.value))} valueLabel={`${density}%`} color="fuchsia" />
+                           <CyberSlider label="Mật độ hiệu ứng (FX Density)" value={density} min={0} max={100} step={10} onChange={(e) => onChangeFxDensity(parseInt(e.target.value))} valueLabel={`${density}% (${density > 80 ? 'High' : density > 40 ? 'Med' : 'Low'})`} color="fuchsia" />
                         </div>
                      </motion.div>
                    )}

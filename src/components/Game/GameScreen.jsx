@@ -100,6 +100,10 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
   const [showSettings, setShowSettings] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
 
+  // Detailed Score Tracking for "Metroidvania" progression
+  const [scoreDetails, setScoreDetails] = useState({ easy: 0, normal: 0, hard: 0 });
+  const [isGoldenWin, setIsGoldenWin] = useState(false);
+
   const [enableBlur, setEnableBlur] = useState(true);
   const [enableSound, setEnableSound] = useState(true);
   const [lowEffects, setLowEffects] = useState(false);
@@ -227,6 +231,10 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
 
   // --- 4. KHỞI TẠO / RESET ---
   useEffect(() => {
+    // Load saved scores if any (this should ideally be in a parent context or initialized from localStorage)
+    const savedScores = JSON.parse(localStorage.getItem('scratch_game_scores') || '{"easy":0, "normal":0, "hard":0}');
+    setScoreDetails(savedScores);
+
     setCurrentLevelIndex(0);
     setLives(5);
     resetCharacter();
@@ -483,8 +491,20 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
       resetCharacter();
       setTimeLeft(INITIAL_TIME); // Reset 30s cho màn mới
     } else {
+      // Finished all 10 questions in this set
       playSfx('win.mp3');
       confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+
+      // Logic for transition / golden win
+      let isGolden = false;
+      const { easy, normal, hard } = scoreDetails;
+
+      if (difficulty === 'hard' && easy >= 10 && normal >= 10 && hard >= 9) {
+          // If this was the last hard question needed
+          isGolden = true;
+      }
+      setIsGoldenWin(isGolden);
+
       setModal({ type: 'win', message: buildSummaryMessage(true) });
     }
   };
@@ -497,7 +517,14 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
     const isCorrect = blockId === currentLevel.correctBlockId;
 
     if (isCorrect) {
-      setStats(prev => ({ ...prev, correct: prev.correct + 1 }));
+      const newCorrect = stats.correct + 1;
+      setStats(prev => ({ ...prev, correct: newCorrect }));
+
+      // UPDATE PROGRESSIVE SCORE
+      const newScoreDetails = { ...scoreDetails, [difficulty]: Math.min(10, scoreDetails[difficulty] + 1) };
+      setScoreDetails(newScoreDetails);
+      localStorage.setItem('scratch_game_scores', JSON.stringify(newScoreDetails));
+
       setAnswerFeedback({ status: 'correct', selectedId: blockId, correctId: currentLevel.correctBlockId });
       
       // Thực thi chuỗi lệnh
@@ -623,6 +650,8 @@ const GameScreen = ({ difficulty, onBack, characterId, setUiScale, uiScale, onNe
             message={modal.message}
             theme={theme}
             stats={stats}
+            scoreDetails={scoreDetails} // Pass progressive scores
+            isGoldenWin={isGoldenWin}
             onHome={onBack}
             onReplay={restartGame}
             onOpenSettings={()=>setShowSettings(true)}

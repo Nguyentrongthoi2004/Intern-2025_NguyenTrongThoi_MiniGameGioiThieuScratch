@@ -3,7 +3,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconStar, IconSkull, IconHome, IconSettings, IconRefresh, IconNext } from './Icons';
 
-const ResultModal = ({ type, message, theme, stats, onHome, onReplay, onOpenSettings, onNextLevel }) => {
+const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, onHome, onReplay, onOpenSettings, onNextLevel }) => {
   const isDark = theme === 'dark';
   const isWin = type === 'win';
 
@@ -20,7 +20,7 @@ const ResultModal = ({ type, message, theme, stats, onHome, onReplay, onOpenSett
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[200] flex items-center justify-center"
+        className={`fixed inset-0 z-[200] flex items-center justify-center ${isGoldenWin ? 'golden-glow-container' : ''}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -116,36 +116,64 @@ const ResultModal = ({ type, message, theme, stats, onHome, onReplay, onOpenSett
 
               {/* BẢNG CHI TIẾT */}
               <div className="relative px-6 pb-4 mt-3">
-                <div className="px-4 py-3 border rounded-3xl bg-black/35 border-white/10">
-                  <div className="flex justify-between items-center text-[11px] text-white/50 mb-1">
-                    <span>#</span>
-                    <span>MỤC</span>
-                    <span>KẾT QUẢ</span>
-                  </div>
+                {scoreDetails ? (
+                   <div className="px-4 py-3 border rounded-3xl bg-black/35 border-white/10">
+                     <div className="flex justify-between items-center text-[11px] text-white/50 mb-2">
+                       <span>DIFFICULTY</span>
+                       <span>PROGRESS</span>
+                     </div>
+                     <div className="space-y-2 text-[12px]">
+                        <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
+                           <span className="font-semibold text-emerald-300">EASY</span>
+                           <span className="font-bold text-white">{scoreDetails.easy} / 10</span>
+                        </div>
+                        <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
+                           <span className="font-semibold text-yellow-300">NORMAL</span>
+                           <span className="font-bold text-white">{scoreDetails.normal} / 10</span>
+                        </div>
+                        <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
+                           <span className="font-semibold text-rose-300">HARD</span>
+                           <span className="font-bold text-white">{scoreDetails.hard} / 10</span>
+                        </div>
+                     </div>
+                     {isGoldenWin && (
+                         <div className="mt-3 text-center">
+                             <span className="text-yellow-400 font-black tracking-widest animate-pulse">✨ GOLDEN MASTER ✨</span>
+                         </div>
+                     )}
+                   </div>
+                ) : (
+                  <div className="px-4 py-3 border rounded-3xl bg-black/35 border-white/10">
+                    <div className="flex justify-between items-center text-[11px] text-white/50 mb-1">
+                      <span>#</span>
+                      <span>MỤC</span>
+                      <span>KẾT QUẢ</span>
+                    </div>
 
-                  <div className="space-y-2 text-[13px]">
-                    <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
-                      <span className="text-[11px] font-bold text-white/70">1.</span>
-                      <span className="font-semibold text-white/90">TỔNG CÂU HỎI</span>
-                      <span className="font-bold text-amber-300">{totalQuestions}</span>
-                    </div>
-                    <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
-                      <span className="text-[11px] font-bold text-white/70">2.</span>
-                      <span className="font-semibold text-emerald-300">TRẢ LỜI ĐÚNG</span>
-                      <span className="font-bold text-emerald-300">{correct}</span>
-                    </div>
-                    <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
-                      <span className="text-[11px] font-bold text-white/70">3.</span>
-                      <span className="font-semibold text-rose-300">TRẢ LỜI SAI</span>
-                      <span className="font-bold text-rose-300">{wrong}</span>
-                    </div>
-                    <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
-                      <span className="text-[11px] font-bold text-white/70">4.</span>
-                      <span className="font-semibold text-sky-300">CHÍNH XÁC</span>
-                      <span className="font-bold text-sky-300">{accuracy}%</span>
+                    <div className="space-y-2 text-[13px]">
+                      <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
+                        <span className="text-[11px] font-bold text-white/70">1.</span>
+                        <span className="font-semibold text-white/90">TỔNG CÂU HỎI</span>
+                        <span className="font-bold text-amber-300">{totalQuestions}</span>
+                      </div>
+                      <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
+                        <span className="text-[11px] font-bold text-white/70">2.</span>
+                        <span className="font-semibold text-emerald-300">TRẢ LỜI ĐÚNG</span>
+                        <span className="font-bold text-emerald-300">{correct}</span>
+                      </div>
+                      <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
+                        <span className="text-[11px] font-bold text-white/70">3.</span>
+                        <span className="font-semibold text-rose-300">TRẢ LỜI SAI</span>
+                        <span className="font-bold text-rose-300">{wrong}</span>
+                      </div>
+                      <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-900/80">
+                        <span className="text-[11px] font-bold text-white/70">4.</span>
+                        <span className="font-semibold text-sky-300">CHÍNH XÁC</span>
+                        <span className="font-bold text-sky-300">{accuracy}%</span>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* 3 NÚT DƯỚI – CHỈ CHO BẤM MẤY NÀY */}

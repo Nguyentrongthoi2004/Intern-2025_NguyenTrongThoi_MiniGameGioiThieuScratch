@@ -18,15 +18,15 @@ const CyberBackground = () => (
 );
 
 const LeaderboardScreen = ({ onBack }) => {
-  const [scores, setScores] = useState([]);
+  const [progress, setProgress] = useState(null);
 
   useEffect(() => {
-    // Load scores from localStorage
-    const savedScores = JSON.parse(localStorage.getItem('scratch_game_leaderboard') || '[]');
-    // Sort by score desc
-    const sorted = savedScores.sort((a, b) => b.score - a.score);
-    setScores(sorted);
+    // Load progress from new key 'scratch_game_scores'
+    const saved = JSON.parse(localStorage.getItem('scratch_game_scores') || 'null');
+    setProgress(saved);
   }, []);
+
+  const isGoldenWin = progress && progress.easy >= 10 && progress.normal >= 10 && progress.hard >= 10;
 
   return (
     <div className="relative flex flex-col items-center justify-center w-full h-screen overflow-hidden font-sans text-white select-none">
@@ -35,70 +35,58 @@ const LeaderboardScreen = ({ onBack }) => {
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative z-10 w-full max-w-3xl h-[80vh] flex flex-col bg-[#0f172a]/80 backdrop-blur-xl rounded-3xl border border-amber-500/20 shadow-2xl overflow-hidden"
+        className={`relative z-10 w-full max-w-2xl flex flex-col bg-[#0f172a]/80 backdrop-blur-xl rounded-3xl border shadow-2xl overflow-hidden
+          ${isGoldenWin ? 'border-yellow-400/50 shadow-[0_0_50px_rgba(250,204,21,0.3)]' : 'border-amber-500/20'}
+        `}
       >
         {/* Header */}
         <div className="p-8 text-center border-b border-white/10 bg-black/20">
-          <h1 className="text-4xl font-black tracking-widest text-transparent uppercase bg-clip-text bg-gradient-to-r from-amber-300 to-orange-500 drop-shadow-sm">
+          <h1 className={`text-4xl font-black tracking-widest text-transparent uppercase bg-clip-text drop-shadow-sm ${isGoldenWin ? 'bg-gradient-to-r from-yellow-200 via-yellow-400 to-amber-500' : 'bg-gradient-to-r from-amber-300 to-orange-500'}`}>
             Bảng Xếp Hạng
           </h1>
           <p className="mt-2 text-xs font-bold tracking-[0.2em] text-amber-500/60 uppercase">
-            Hall of Fame
+            Your Journey
           </p>
         </div>
 
-        {/* Table Header */}
-        <div className="grid grid-cols-12 gap-4 px-8 py-4 text-xs font-bold tracking-widest text-slate-400 uppercase bg-black/30">
-          <div className="col-span-2 text-center">Rank</div>
-          <div className="col-span-4">Player</div>
-          <div className="col-span-3 text-center">Difficulty</div>
-          <div className="col-span-3 text-right">Score</div>
-        </div>
-
-        {/* List */}
-        <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
-          {scores.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500">
+        {/* Score Display */}
+        <div className="flex-1 p-8 overflow-y-auto custom-scrollbar flex items-center justify-center">
+          {!progress ? (
+            <div className="flex flex-col items-center justify-center text-slate-500">
               <IconTrophy className="w-16 h-16 mb-4 opacity-50" />
-              <p>Chưa có dữ liệu xếp hạng</p>
+              <p>Chưa có dữ liệu. Hãy chơi game ngay!</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {scores.map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={`
-                    grid grid-cols-12 gap-4 items-center px-4 py-3 rounded-lg border border-white/5
-                    ${index === 0 ? 'bg-amber-500/20 border-amber-500/50' : ''}
-                    ${index === 1 ? 'bg-slate-300/10 border-slate-300/30' : ''}
-                    ${index === 2 ? 'bg-orange-700/10 border-orange-700/30' : ''}
-                    ${index > 2 ? 'bg-slate-800/50 hover:bg-slate-700/50' : ''}
-                  `}
-                >
-                  <div className="col-span-2 flex justify-center font-black text-xl text-slate-300">
-                    {index < 3 ? <IconMedal className={`w-8 h-8 ${index === 0 ? 'text-amber-400' : index === 1 ? 'text-slate-300' : 'text-orange-400'}`} rank={index + 1} /> : `#${index + 1}`}
+            <div className="w-full space-y-6">
+               <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/50 border border-emerald-500/30">
+                  <span className="text-emerald-400 font-black tracking-widest text-lg">EASY</span>
+                  <div className="flex items-center gap-4">
+                     <div className="w-32 h-3 bg-slate-800 rounded-full overflow-hidden">
+                        <motion.div initial={{width: 0}} animate={{width: `${(progress.easy/10)*100}%`}} className="h-full bg-emerald-500" />
+                     </div>
+                     <span className="text-white font-mono font-bold text-xl">{progress.easy}/10</span>
                   </div>
-                  <div className="col-span-4 font-bold text-slate-200 truncate">
-                    {item.name || 'Anonymous'}
+               </div>
+
+               <div className={`flex items-center justify-between p-4 rounded-2xl bg-slate-900/50 border border-yellow-500/30 ${progress.easy < 10 ? 'opacity-50 grayscale' : ''}`}>
+                  <span className="text-yellow-400 font-black tracking-widest text-lg">NORMAL</span>
+                  <div className="flex items-center gap-4">
+                     <div className="w-32 h-3 bg-slate-800 rounded-full overflow-hidden">
+                        <motion.div initial={{width: 0}} animate={{width: `${(progress.normal/10)*100}%`}} className="h-full bg-yellow-500" />
+                     </div>
+                     <span className="text-white font-mono font-bold text-xl">{progress.normal}/10</span>
                   </div>
-                  <div className="col-span-3 text-center">
-                    <span className={`
-                      text-[10px] px-2 py-1 rounded border uppercase font-bold
-                      ${item.difficulty === 'easy' ? 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10' : ''}
-                      ${item.difficulty === 'normal' ? 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10' : ''}
-                      ${item.difficulty === 'hard' ? 'border-rose-500/30 text-rose-400 bg-rose-500/10' : ''}
-                    `}>
-                      {item.difficulty}
-                    </span>
+               </div>
+
+               <div className={`flex items-center justify-between p-4 rounded-2xl bg-slate-900/50 border border-rose-500/30 ${progress.normal < 10 ? 'opacity-50 grayscale' : ''}`}>
+                  <span className="text-rose-400 font-black tracking-widest text-lg">HARD</span>
+                  <div className="flex items-center gap-4">
+                     <div className="w-32 h-3 bg-slate-800 rounded-full overflow-hidden">
+                        <motion.div initial={{width: 0}} animate={{width: `${(progress.hard/10)*100}%`}} className="h-full bg-rose-500" />
+                     </div>
+                     <span className="text-white font-mono font-bold text-xl">{progress.hard}/10</span>
                   </div>
-                  <div className="col-span-3 text-right font-mono font-bold text-amber-300 text-lg">
-                    {item.score}
-                  </div>
-                </motion.div>
-              ))}
+               </div>
             </div>
           )}
         </div>
