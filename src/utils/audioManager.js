@@ -8,14 +8,29 @@ class AudioManager {
     this.sfxVolume = 0.9;
     this.enabled = true;
     this.initialized = false;
+
+    // --- FIX QUAN TRỌNG: Lấy Base URL từ Vite ---
+    // Cái này giúp tự động thêm "/scratch-intern-projec/" vào trước đường dẫn
+    this.baseUrl = import.meta.env.BASE_URL;
+  }
+
+  // Hàm hỗ trợ tạo đường dẫn chuẩn xác
+  getSoundPath(fileName) {
+    // Xóa dấu / ở đầu nếu lỡ có
+    const cleanName = fileName.startsWith('/') ? fileName.slice(1) : fileName;
+    
+    // Nếu fileName chưa có 'assets/sounds', tự động thêm vào
+    if (!cleanName.startsWith('assets/sounds/')) {
+        return `${this.baseUrl}assets/sounds/${cleanName}`;
+    }
+    return `${this.baseUrl}${cleanName}`;
   }
 
   // Initialize BGM
-  initBgm(path) {
+  initBgm(fileName) {
     if (!this.bgm) {
-      // Use absolute path to ensure robustness
-      const absolutePath = path.startsWith('/') ? path : `/${path}`;
-      this.bgm = new Audio(absolutePath);
+      const path = this.getSoundPath(fileName);
+      this.bgm = new Audio(path);
       this.bgm.loop = true;
       this.bgm.volume = this.bgmVolume;
       this.bgm.preload = 'auto';
@@ -26,8 +41,7 @@ class AudioManager {
   preloadSfx(files) {
     files.forEach(file => {
       if (!this.sfxCache[file]) {
-        // Use absolute path
-        const path = `/assets/sounds/${file}`;
+        const path = this.getSoundPath(file);
         const audio = new Audio(path);
         audio.preload = 'auto';
         this.sfxCache[file] = audio;
@@ -41,21 +55,34 @@ class AudioManager {
       const playPromise = this.bgm.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          // Auto-play was prevented
+          // Auto-play was prevented by browser policy
           // console.warn("Audio unlock failed (waiting for interaction):", e);
         });
       }
     }
   }
 
-  playBgm() {
+  playBgm(fileName) {
+    // Nếu có fileName mới được truyền vào, khởi tạo lại
+    if (fileName) {
+       // Nếu đang phát đúng bài này rồi thì thôi
+       if (this.bgm && this.bgm.src.includes(fileName)) {
+           if (this.bgm.paused && this.enabled) this.bgm.play().catch(() => {});
+           return;
+       }
+       // Nếu khác bài, dừng bài cũ và tạo bài mới
+       if (this.bgm) this.bgm.pause();
+       this.initBgm(fileName);
+    }
+
     if (!this.bgm) return;
+
     if (this.enabled) {
       this.bgm.volume = this.bgmVolume;
       const playPromise = this.bgm.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          // console.warn("BGM autoplay prevented:", e);
+           console.log("Chờ người dùng tương tác để phát nhạc nền...");
         });
       }
     }
@@ -70,7 +97,7 @@ class AudioManager {
   playSfx(filename) {
     if (!this.enabled) return;
 
-    // Use cached audio if available
+    // 1. Thử lấy từ Cache
     let audio = this.sfxCache[filename];
 
     if (audio) {
@@ -78,11 +105,13 @@ class AudioManager {
       clone.volume = this.sfxVolume;
       clone.play().catch(() => {});
     } else {
-      // Fallback
-      const path = `/assets/sounds/${filename}`;
+      // 2. Nếu chưa có trong Cache thì tạo mới (Fallback)
+      const path = this.getSoundPath(filename);
       const temp = new Audio(path);
       temp.volume = this.sfxVolume;
-      temp.play().catch(() => {});
+      temp.play().catch(() => {
+          console.warn("Lỗi phát SFX (có thể do sai đường dẫn):", path);
+      });
     }
   }
 
@@ -104,7 +133,7 @@ class AudioManager {
     if (!val) {
       this.pauseBgm();
     } else {
-      this.playBgm();
+      this.playBgm(); // Resume
     }
   }
 }
