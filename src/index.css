@@ -86,6 +86,30 @@ body {
   transform-origin: center;
 }
 
+/* ============ STAGE EFFECTS (Moved from Stage.jsx) ============ */
+@keyframes shake-impact {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+.animate-shake-impact {
+  animation: shake-impact 0.4s ease-in-out;
+}
+
+@keyframes bounce-arc {
+  0% { transform: translateY(0); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
+  50% { transform: translateY(-80px); animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes pop-in {
+  0% { opacity:0; transform: scale(0.5); }
+  100% { opacity:1; transform: scale(1); }
+}
+.animate-pop-in {
+  animation: pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
 /* ============ THUA: RUNG MẠNH 1 LẦN ============ */
 @keyframes lose-shake {
   0%   { transform: translate(0, 0) rotate(0deg); }

@@ -1,6 +1,46 @@
-import React, { useMemo, useEffect, useRef } from 'react'; // Thêm useRef
+import React, { useMemo, useEffect, useRef } from 'react';
 import { audioManager } from '../../utils/audioManager';
 import { IconMail } from '../UI/Icons';
+
+// --- ASSETS CONFIG (Đưa ra ngoài component để tránh khởi tạo lại) ---
+const CHAR_CONFIG = {
+  pink: {
+    idle:   { fileName: 'Pink_Monster_Idle_4.png', frames: 4 },
+    move:   { fileName: 'Pink_Monster_Run_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
+    jump:   { fileName: 'Pink_Monster_Jump_8.png', frames: 8, dust: 'Double_Jump_Dust_5.png' },
+    death:  { fileName: 'Pink_Monster_Death_8.png', frames: 8 },
+    hurt:   { fileName: 'Pink_Monster_Hurt_4.png', frames: 4 },
+    climb:  { fileName: 'Pink_Monster_Climb_4.png', frames: 4 },
+    say:    { fileName: 'Pink_Monster_Attack1_4.png', frames: 4 },
+    throw:  { fileName: 'Pink_Monster_Throw_4.png', frames: 4 },
+    push:   { fileName: 'Pink_Monster_Push_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
+    flag:   { fileName: 'Pink_Monster_Idle_4.png', frames: 4 }
+  },
+  dude: {
+    idle:   { fileName: 'Dude_Monster_Idle_4.png', frames: 4 },
+    move:   { fileName: 'Dude_Monster_Run_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
+    jump:   { fileName: 'Dude_Monster_Jump_8.png', frames: 8, dust: 'Double_Jump_Dust_5.png' },
+    death:  { fileName: 'Dude_Monster_Death_8.png', frames: 8 },
+    hurt:   { fileName: 'Dude_Monster_Hurt_4.png', frames: 4 },
+    climb:  { fileName: 'Dude_Monster_Climb_4.png', frames: 4 },
+    say:    { fileName: 'Dude_Monster_Attack1_4.png', frames: 4 },
+    throw:  { fileName: 'Dude_Monster_Throw_4.png', frames: 4 },
+    push:   { fileName: 'Dude_Monster_Push_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
+    flag:   { fileName: 'Dude_Monster_Idle_4.png', frames: 4 }
+  },
+  owlet: {
+    idle:   { fileName: 'Owlet_Monster_Idle_4.png', frames: 4 },
+    move:   { fileName: 'Owlet_Monster_Run_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
+    jump:   { fileName: 'Owlet_Monster_Jump_8.png', frames: 8, dust: 'Double_Jump_Dust_5.png' },
+    death:  { fileName: 'Owlet_Monster_Death_8.png', frames: 8 },
+    hurt:   { fileName: 'Owlet_Monster_Hurt_4.png', frames: 4 },
+    climb:  { fileName: 'Owlet_Monster_Climb_4.png', frames: 4 },
+    say:    { fileName: 'Owlet_Monster_Attack1_4.png', frames: 4 },
+    throw:  { fileName: 'Owlet_Monster_Throw_4.png', frames: 4 },
+    push:   { fileName: 'Owlet_Monster_Push_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
+    flag:   { fileName: 'Owlet_Monster_Idle_4.png', frames: 4 }
+  }
+};
 
 const Stage = ({ 
   x, y, rotation, status, characterId, speechText, 
@@ -9,50 +49,7 @@ const Stage = ({
 }) => {
   const safeId = characterId || 'pink';
   
-  // Dùng useRef để nhớ câu thoại vừa mới phát âm thanh xong
-  // Giúp ngăn chặn việc phát lại liên tục nếu component render lại
   const lastPlayedText = useRef('');
-
-  // --- ASSETS (Giữ nguyên) ---
-  const CHAR_CONFIG = {
-    // ... (Giữ nguyên phần config nhân vật của bạn)
-    pink: {
-      idle:   { fileName: 'Pink_Monster_Idle_4.png', frames: 4 },
-      move:   { fileName: 'Pink_Monster_Run_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
-      jump:   { fileName: 'Pink_Monster_Jump_8.png', frames: 8, dust: 'Double_Jump_Dust_5.png' },
-      death:  { fileName: 'Pink_Monster_Death_8.png', frames: 8 },
-      hurt:   { fileName: 'Pink_Monster_Hurt_4.png', frames: 4 },
-      climb:  { fileName: 'Pink_Monster_Climb_4.png', frames: 4 },
-      say:    { fileName: 'Pink_Monster_Attack1_4.png', frames: 4 },
-      throw:  { fileName: 'Pink_Monster_Throw_4.png', frames: 4 },
-      push:   { fileName: 'Pink_Monster_Push_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
-      flag:   { fileName: 'Pink_Monster_Idle_4.png', frames: 4 }
-    },
-    dude: {
-      idle:   { fileName: 'Dude_Monster_Idle_4.png', frames: 4 },
-      move:   { fileName: 'Dude_Monster_Run_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
-      jump:   { fileName: 'Dude_Monster_Jump_8.png', frames: 8, dust: 'Double_Jump_Dust_5.png' },
-      death:  { fileName: 'Dude_Monster_Death_8.png', frames: 8 },
-      hurt:   { fileName: 'Dude_Monster_Hurt_4.png', frames: 4 },
-      climb:  { fileName: 'Dude_Monster_Climb_4.png', frames: 4 },
-      say:    { fileName: 'Dude_Monster_Attack1_4.png', frames: 4 },
-      throw:  { fileName: 'Dude_Monster_Throw_4.png', frames: 4 },
-      push:   { fileName: 'Dude_Monster_Push_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
-      flag:   { fileName: 'Dude_Monster_Idle_4.png', frames: 4 }
-    },
-    owlet: {
-      idle:   { fileName: 'Owlet_Monster_Idle_4.png', frames: 4 },
-      move:   { fileName: 'Owlet_Monster_Run_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
-      jump:   { fileName: 'Owlet_Monster_Jump_8.png', frames: 8, dust: 'Double_Jump_Dust_5.png' },
-      death:  { fileName: 'Owlet_Monster_Death_8.png', frames: 8 },
-      hurt:   { fileName: 'Owlet_Monster_Hurt_4.png', frames: 4 },
-      climb:  { fileName: 'Owlet_Monster_Climb_4.png', frames: 4 },
-      say:    { fileName: 'Owlet_Monster_Attack1_4.png', frames: 4 },
-      throw:  { fileName: 'Owlet_Monster_Throw_4.png', frames: 4 },
-      push:   { fileName: 'Owlet_Monster_Push_6.png', frames: 6, dust: 'Walk_Run_Push_Dust_6.png' },
-      flag:   { fileName: 'Owlet_Monster_Idle_4.png', frames: 4 }
-    }
-  };
 
   const currentConfig = CHAR_CONFIG[safeId] || CHAR_CONFIG.pink;
   const animData = currentConfig[status] || currentConfig.idle;
@@ -81,23 +78,14 @@ const Stage = ({
   useEffect(() => {
     if (!speechText || typeof speechText !== 'string') return;
 
-    // A. LOCK MECHANISM: Nếu text này đã phát rồi thì thôi, không phát lại
     if (lastPlayedText.current === speechText) return;
 
-    // B. REGEX CHECK: Chỉ bắt từ "pop" nguyên vẹn (Whole Word)
-    // \b là ranh giới từ. Nó sẽ khớp "Pop", "pop!", "POP"
-    // Nhưng KHÔNG khớp "popular", "prop", "top", "lollipop"
     const popRegex = /\bpop\b/i;
 
     if (popRegex.test(speechText)) {
-      // console.log("Playing Pop sound for text:", speechText); // Debug nếu cần
       audioManager.playSfx('pop.mp3');
-      
-      // Đánh dấu là đã phát cho câu này
       lastPlayedText.current = speechText;
     } else {
-      // Nếu text mới không có chữ pop, reset lại tracker (hoặc giữ nguyên tùy logic)
-      // Ở đây ta cập nhật để nếu câu sau có pop thì nó lại tính mới
       lastPlayedText.current = speechText;
     }
   }, [speechText]);
@@ -106,6 +94,27 @@ const Stage = ({
   const baseAnimSpeed = status === 'death' ? 1.0 : 0.3;
   const animDuration = `${baseAnimSpeed / speed}s`;
   const moveDuration = `${0.6 / speed}s`;
+
+  // --- OPTIMIZED STYLES ---
+  // Dùng useMemo cho style object để tránh tạo object mới mỗi lần render nếu props không đổi
+  // Sử dụng translate3d để force GPU
+  const characterStyle = useMemo(() => ({
+    top: '50%', left: '50%',
+    transition: `transform ${moveDuration} cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease`,
+    transform: `translate3d(-50%, -100%, 0) translate3d(${x}px, ${y * -1}px, 0) scale3d(${cssScaleX * (visible ? scale : 0)}, ${visible ? scale : 0}, 1) ${cssRotation}`,
+    opacity: visible ? 1 : 0,
+    filter: `drop-shadow(0 4px 6px rgba(0,0,0,0.3))`
+  }), [x, y, cssScaleX, scale, visible, cssRotation, moveDuration]);
+
+  const friendStyle = useMemo(() => {
+    if (!friend) return {};
+    return {
+      top: '50%', left: '50%',
+      transform: `translate3d(-50%, -100%, 0) translate3d(${friend.x}px, ${friend.y * -1}px, 0)`,
+      transition: `transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease-in`,
+      opacity: 1
+    };
+  }, [friend]);
 
   return (
     <div className={`relative w-full h-full overflow-hidden border-4 border-slate-700 bg-slate-900 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] rounded-2xl font-mono ${status === 'hurt' || status === 'push' ? 'animate-shake-impact' : ''}`}>
@@ -141,12 +150,7 @@ const Stage = ({
       {friend && friend.visible && CHAR_CONFIG[friend.id] && (
         <div
           className="absolute z-10 w-32 h-32 will-change-transform"
-          style={{
-            top: '50%', left: '50%',
-            transform: `translate(-50%, -100%) translate(${friend.x}px, ${friend.y * -1}px)`,
-            transition: `transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease-in`,
-            opacity: 1
-          }}
+          style={friendStyle}
         >
            <img 
              src={`assets/images/characters/${friend.id}/${CHAR_CONFIG[friend.id].idle.fileName}`}
@@ -168,13 +172,7 @@ const Stage = ({
       {/* Main Character */}
       <div
         className="absolute z-20 w-32 h-32 will-change-transform"
-        style={{
-          top: '50%', left: '50%',
-          transition: `transform ${moveDuration} cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease`, 
-          transform: `translate(-50%, -100%) translate(${x}px, ${y * -1}px) scale(${cssScaleX}, 1) scale(${visible ? scale : 0}) ${cssRotation}`,
-          opacity: visible ? 1 : 0,
-          filter: `drop-shadow(0 4px 6px rgba(0,0,0,0.3))`
-        }}
+        style={characterStyle}
       >
         {/* Dust */}
         {animData.dust && visible && (
@@ -232,18 +230,6 @@ const Stage = ({
           </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes sprite-slide { from { transform: translateX(0); } to { transform: translateX(-100%); } }
-        @keyframes shake-impact { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-        @keyframes bounce-arc {
-          0% { transform: translateY(0); animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1); }
-          50% { transform: translateY(-80px); animation-timing-function: cubic-bezier(0.32, 0, 0.67, 0); }
-          100% { transform: translateY(0); }
-        }
-        @keyframes pop-in { 0% { opacity:0; transform: scale(0.5); } 100% { opacity:1; transform: scale(1); } }
-        .pixelated { image-rendering: pixelated; }
-      `}</style>
     </div>
   );
 };
