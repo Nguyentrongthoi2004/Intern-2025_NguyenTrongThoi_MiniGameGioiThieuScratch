@@ -1,7 +1,5 @@
 // src/components/Block/Block.jsx
-import React from 'react';
-
-const Block = ({ type, text, onClick, theme = 'light' }) => {
+const Block = ({ type, text, onClick }) => {
   
   // Trích xuất số để hiển thị badge (ví dụ: "Move Right 5" -> lấy số 5)
   const valMatch = text.match(/-?\d+/);

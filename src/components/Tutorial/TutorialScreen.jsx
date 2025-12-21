@@ -1,11 +1,11 @@
 // src/components/Tutorial/TutorialScreen.jsx
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { motion } from 'framer-motion'; 
 import { tutorialData } from '../../data/tutorialData';
 import { IconHome, IconLightning, IconRun, IconLook, IconSound, IconControl, IconStop } from '../UI/Icons';
 
 // Nền lưới (giữ nguyên cho khung ngoài)
-const CyberGridBg = React.memo(() => (
+const CyberGridBg = memo(() => (
   <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden bg-[#020617]">
     <div 
       className="absolute inset-0 opacity-[0.03]" 
@@ -18,18 +18,11 @@ const CyberGridBg = React.memo(() => (
   </div>
 ));
 
-const TutorialScreen = ({ onBack, isOverlay = false }) => {
+CyberGridBg.displayName = 'CyberGridBg';
+
+const TutorialScreen = memo(({ onBack, isOverlay = false }) => {
   const [activeTab, setActiveTab] = useState(tutorialData[0]?.id || 'motion');
   const currentCategory = tutorialData.find(cat => cat.id === activeTab);
-
-  // Nếu là overlay thì chỉnh lại style cho phù hợp (full width/height của container cha)
-  const containerClass = isOverlay
-    ? "relative flex w-full h-full rounded-2xl overflow-hidden bg-[#020617] text-slate-200 border border-slate-700 shadow-2xl"
-    : "relative flex h-screen p-4 md:p-6 pt-16 font-sans bg-[#020617] overflow-hidden select-none text-slate-200";
-
-  const innerClass = isOverlay
-    ? "relative z-10 flex w-full h-full mx-auto bg-[#0b1120] border-slate-800"
-    : "relative z-10 flex w-full max-w-7xl mx-auto overflow-hidden bg-[#0b1120] border border-slate-800 shadow-2xl h-[90vh] rounded-2xl";
 
   return (
     <div className={isOverlay ? "w-full h-full font-sans select-none" : "relative w-full h-full"}>
@@ -179,6 +172,8 @@ const TutorialScreen = ({ onBack, isOverlay = false }) => {
        </div>
     </div>
   );
-};
+});
+
+TutorialScreen.displayName = 'TutorialScreen';
 
 export default TutorialScreen;

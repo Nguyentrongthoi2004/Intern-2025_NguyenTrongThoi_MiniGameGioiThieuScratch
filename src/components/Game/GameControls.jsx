@@ -1,4 +1,3 @@
-import React from 'react';
 import { IconHome, IconSettings, IconMoon, IconSun, IconEye, IconEyeOff } from '../UI/Icons';
 
 const GameControls = ({ onBack, setShowSettings, toggleTheme, theme, setHideUI, hideUI }) => {

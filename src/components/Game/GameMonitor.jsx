@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import Stage from './Stage';
 import { IconClock } from '../UI/Icons';
 
@@ -30,6 +30,8 @@ const JoyConLeft = memo(() => {
   );
 });
 
+JoyConLeft.displayName = 'JoyConLeft';
+
 const JoyConRight = memo(() => {
   const btnBase = "relative w-10 h-10 rounded-full bg-gradient-to-b from-[#333] to-[#222] shadow-[0_3px_0_#111,inset_0_1px_1px_rgba(255,255,255,0.1)] flex items-center justify-center border border-white/5 active:translate-y-[3px] active:shadow-[0_1px_0_#111] transition-all";
   const textStyle = "text-[#666] text-xs font-black group-hover:text-yellow-300 drop-shadow-sm";
@@ -55,6 +57,8 @@ const JoyConRight = memo(() => {
     </div>
   );
 });
+
+JoyConRight.displayName = 'JoyConRight';
 
 // --- 2. COMPONENT CHÍNH ---
 const GameMonitor = ({ isDark, difficulty, currentLevelIndex, characterState, characterId, timeLeft }) => {

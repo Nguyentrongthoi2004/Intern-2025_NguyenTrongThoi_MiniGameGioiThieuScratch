@@ -1,7 +1,7 @@
 // src/components/Menu/LeaderboardScreen.jsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { IconTrophy, IconMedal } from '../UI/Icons';
+import { IconTrophy } from '../UI/Icons';
 
 const CyberBackground = () => (
   <div className="absolute inset-0 z-0 overflow-hidden bg-[#020617]">

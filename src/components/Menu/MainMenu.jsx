@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import SettingsModal from '../UI/SettingsModal';
-import { IconRocket, IconBook, IconTrophy, IconSettings, IconUser, IconArrowRight } from '../UI/Icons';
+import { IconRocket, IconBook, IconTrophy, IconSettings, IconUser, IconShoppingCart } from '../UI/Icons';
 
 // --- Background Component ---
 const CyberBackground = () => (
@@ -166,7 +166,7 @@ const MainMenu = ({
 
         <MenuButton 
           label="Cửa Hàng"
-          icon={<span className="text-xl">🛒</span>}
+          icon={<IconShoppingCart className="w-6 h-6" />}
           color="yellow" 
           onClick={onShop}
           delay={0.3}

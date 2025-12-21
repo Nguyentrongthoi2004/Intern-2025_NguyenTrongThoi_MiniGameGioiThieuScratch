@@ -1,6 +1,4 @@
 // src/components/Menu/DifficultySelection.jsx
-import React from 'react';
-import { motion } from 'framer-motion';
 import { IconPlant, IconLightning, IconFlame } from '../UI/Icons';
 
 // --- Background Component (Tái sử dụng cho đồng bộ) ---

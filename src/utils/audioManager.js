@@ -40,7 +40,7 @@ class AudioManager {
     if (this.bgm && this.bgm.paused && this.enabled) {
       const playPromise = this.bgm.play();
       if (playPromise !== undefined) {
-        playPromise.catch(e => {
+        playPromise.catch(() => {
           // Auto-play was prevented
           // console.warn("Audio unlock failed (waiting for interaction):", e);
         });
@@ -54,7 +54,7 @@ class AudioManager {
       this.bgm.volume = this.bgmVolume;
       const playPromise = this.bgm.play();
       if (playPromise !== undefined) {
-        playPromise.catch(e => {
+        playPromise.catch(() => {
           // console.warn("BGM autoplay prevented:", e);
         });
       }
@@ -76,7 +76,7 @@ class AudioManager {
     if (audio) {
       const clone = audio.cloneNode();
       clone.volume = this.sfxVolume;
-      clone.play().catch(e => {});
+      clone.play().catch(() => {});
     } else {
       // Fallback
       const path = `/assets/sounds/${filename}`;

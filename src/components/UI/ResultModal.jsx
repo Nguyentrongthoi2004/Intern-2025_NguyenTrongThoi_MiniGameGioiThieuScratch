@@ -1,5 +1,4 @@
 // src/components/UI/ResultModal.jsx
-import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconStar, IconSkull, IconHome, IconSettings, IconRefresh, IconNext } from './Icons';
 

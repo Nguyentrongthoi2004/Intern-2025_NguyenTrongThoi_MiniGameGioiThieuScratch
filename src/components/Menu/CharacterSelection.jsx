@@ -1,6 +1,5 @@
 // src/components/Menu/CharacterSelection.jsx
-import React from 'react';
-import { motion } from 'framer-motion';
+import { IconArrowLeft } from '../UI/Icons';
 
 // --- Background Component (Tái sử dụng cho đồng bộ) ---
 const CyberBackground = () => (
@@ -128,9 +127,7 @@ const CharacterSelection = ({ onSelectCharacter, onBack }) => {
         "
       >
         <span className="flex items-center justify-center w-8 h-8 transition-colors border rounded-full bg-slate-800 border-slate-600 group-hover:border-cyan-400 group-hover:bg-cyan-950">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-slate-400 group-hover:text-cyan-300 transition-colors group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
+           <IconArrowLeft className="w-4 h-4 text-slate-400 group-hover:text-cyan-300 transition-colors group-hover:-translate-x-0.5" />
         </span>
         <span className="text-xs font-bold tracking-widest uppercase transition-colors text-slate-400 group-hover:text-cyan-300">
             Back to Menu

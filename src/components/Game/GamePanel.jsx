@@ -1,7 +1,7 @@
 // src/components/Game/GamePanel.jsx
 import React from 'react';
 import Block from '../Block/Block';
-import { IconHeart, IconEye, IconRocket, IconLightning } from '../UI/Icons';
+import { IconHeart, IconEye, IconRocket } from '../UI/Icons';
 
 const GamePanel = React.memo(({
   theme,
@@ -317,4 +317,5 @@ const GamePanel = React.memo(({
   );
 });
 
+GamePanel.displayName = 'GamePanel';
 export default GamePanel;

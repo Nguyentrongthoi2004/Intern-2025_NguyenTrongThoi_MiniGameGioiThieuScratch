@@ -1,5 +1,5 @@
 // src/components/UI/MouseTrail.jsx
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 const MouseTrail = () => {
   const canvasRef = useRef(null);

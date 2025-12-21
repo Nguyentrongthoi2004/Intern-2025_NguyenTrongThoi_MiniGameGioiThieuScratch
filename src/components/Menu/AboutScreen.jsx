@@ -1,5 +1,4 @@
 // src/components/Menu/AboutScreen.jsx
-import React from 'react';
 import { motion } from 'framer-motion';
 import { audioManager } from '../../utils/audioManager';
 import { 
@@ -70,13 +69,26 @@ const BACKGROUNDS = [
 
 // --- COMPONENTS ---
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+};
+
 const ReportSection = ({ title, icon: Icon, children }) => (
   <motion.div 
-    initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: "-50px" }}
-    transition={{ duration: 0.5 }}
-    className="mb-20 last:mb-0"
+    variants={itemVariants}
+    className="mb-16 last:mb-0"
   >
     <div className="flex items-center gap-4 pb-4 mb-8 border-b border-white/10">
       <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 ring-1 ring-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.15)]">
@@ -89,7 +101,10 @@ const ReportSection = ({ title, icon: Icon, children }) => (
 );
 
 const BlockGridItem = ({ block }) => (
-    <div className="flex flex-col items-center gap-3 p-4 transition-all border bg-slate-900/40 border-white/5 rounded-xl hover:bg-slate-800 hover:border-cyan-500/50 hover:shadow-lg group">
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className="flex flex-col items-center gap-3 p-4 transition-all border bg-slate-900/40 border-white/5 rounded-xl hover:bg-slate-800 hover:border-cyan-500/50 hover:shadow-lg group"
+    >
         <div className="transition-transform origin-center transform scale-90 group-hover:scale-105">
              <Block type={block.type} text={block.text} onClick={() => {}} />
         </div>
@@ -97,7 +112,7 @@ const BlockGridItem = ({ block }) => (
             <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{block.type}</div>
             <div className="text-xs text-slate-400 group-hover:text-cyan-300 truncate max-w-[120px]">{block.desc}</div>
         </div>
-    </div>
+    </motion.div>
 );
 
 const AboutScreen = ({ onBack }) => {
@@ -143,7 +158,12 @@ const AboutScreen = ({ onBack }) => {
 
       {/* MAIN SCROLL CONTENT */}
       <div className="absolute inset-0 px-4 pt-24 pb-20 overflow-y-auto custom-scrollbar scroll-smooth md:px-8">
-        <div className="max-w-6xl mx-auto">
+        <motion.div
+            className="max-w-6xl mx-auto"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
 
             {/* --- 1. UI SYSTEM --- */}
             <ReportSection title="Giao diện (UI System)" icon={IconImage}>
@@ -189,21 +209,19 @@ const AboutScreen = ({ onBack }) => {
                 </div>
             </ReportSection>
 
-            {/* --- 2. CHARACTERS (Đã fix logic Sprite Sheet) --- */}
+            {/* --- 2. CHARACTERS --- */}
             <ReportSection title="Nhân vật (Sprites)" icon={IconUser}>
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
                     {CHARACTERS.map(char => (
                         <div key={char.id} className="relative overflow-hidden transition-all border shadow-xl group bg-slate-900 border-slate-800 rounded-2xl hover:border-cyan-500/50">
-                            {/* Visual Container - Quan trọng: Giữ logic hiển thị sprite sheet */}
+                            {/* Visual Container */}
                             <div className="h-64 relative flex items-center justify-center bg-[url('assets/images/ui/noise.svg')] bg-opacity-5 overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-900/90" />
                                 
-                                {/* SPRITE CONTAINER FIX */}
                                 <div className="relative w-32 h-32 overflow-hidden">
                                     <img 
                                         src={`assets/images/characters/${char.id}/${char.file}`} 
                                         alt={char.name}
-                                        // LOGIC GỐC: width 400% để hiển thị 4 frame, steps(4) để cắt frame
                                         className="absolute top-0 left-0 max-w-none w-[400%] h-full object-cover pixelated rendering-pixelated"
                                         style={{ animation: `sprite-preview 1s steps(4) infinite` }}
                                     />
@@ -334,7 +352,7 @@ const AboutScreen = ({ onBack }) => {
             </ReportSection>
 
             <div className="h-20" /> {/* Spacer cuối trang */}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

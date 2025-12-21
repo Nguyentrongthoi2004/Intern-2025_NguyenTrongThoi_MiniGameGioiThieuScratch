@@ -1,5 +1,4 @@
 // src/components/Menu/ShopScreen.jsx
-import React from 'react';
 import { motion } from 'framer-motion';
 import { IconArrowLeft, IconZap, IconHeart, IconHelp } from '../UI/Icons';
 import anime from 'animejs';
