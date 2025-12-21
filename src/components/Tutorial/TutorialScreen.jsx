@@ -1,5 +1,5 @@
 // src/components/Tutorial/TutorialScreen.jsx
-import React, { useState, memo } from 'react';
+import { useState, memo } from 'react';
 import { motion } from 'framer-motion'; 
 import { tutorialData } from '../../data/tutorialData';
 import { IconHome, IconLightning, IconRun, IconLook, IconSound, IconControl, IconStop } from '../UI/Icons';

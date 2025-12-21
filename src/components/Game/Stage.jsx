@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { audioManager } from '../../utils/audioManager';
 import { IconMail } from '../UI/Icons';
 

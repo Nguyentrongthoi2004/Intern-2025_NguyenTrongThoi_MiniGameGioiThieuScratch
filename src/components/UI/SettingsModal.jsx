@@ -1,5 +1,6 @@
 // src/components/UI/SettingsModal.jsx
-import { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconSettings, IconEye, IconHome, IconBook, IconLightning } from './Icons';
 
@@ -8,7 +9,7 @@ import { IconSettings, IconEye, IconHome, IconBook, IconLightning } from './Icon
 // ==========================================
 
 const CornerDecor = ({ className }) => (
-  <div className={`absolute w-4 h-4 border-cyan-500/50 ${className}`}>
+  <div className={`absolute w-4 h-4 border-cyan-500/50 ${className} pointer-events-none`}>
     <div className="absolute inset-0 border-t-2 border-l-2 border-inherit" />
   </div>
 );
@@ -16,7 +17,7 @@ const CornerDecor = ({ className }) => (
 const CyberGridBg = () => (
   <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden rounded-[32px]">
     <div 
-      className="absolute inset-0 opacity-[0.03]" 
+      className="absolute inset-0 opacity-[0.05]" 
       style={{ 
         backgroundImage: `linear-gradient(to right, #22d3ee 1px, transparent 1px), linear-gradient(to bottom, #22d3ee 1px, transparent 1px)`,
         backgroundSize: '40px 40px'
@@ -41,7 +42,7 @@ const CyberToggle = ({ label, subLabel, active, onToggle, color = 'cyan' }) => {
   return (
     <div 
       onClick={onToggle}
-      className={`group relative flex items-center justify-between p-4 mb-3 border rounded-xl transition-all duration-300 cursor-pointer overflow-hidden
+      className={`group relative flex items-center justify-between p-4 mb-3 border rounded-xl transition-all duration-300 cursor-pointer overflow-hidden select-none
         ${active ? `border-${color}-500/30 bg-[#0f172a] shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]` : 'border-white/5 bg-[#0b1120]/80 hover:border-white/10 hover:bg-[#1e293b]/40'}`}
     >
       <div className="relative z-10 flex-1 pr-6">
@@ -63,10 +64,9 @@ const CyberToggle = ({ label, subLabel, active, onToggle, color = 'cyan' }) => {
 const CyberSlider = ({ value, min, max, step, onChange, label, valueLabel, color = 'cyan' }) => {
   const percentage = ((value - min) / (max - min)) * 100;
   return (
-    <div className="relative p-5 mb-4 border rounded-2xl bg-[#0b1120]/60 border-white/5 hover:border-white/10 transition-all group">
+    <div className="relative p-5 mb-4 border rounded-2xl bg-[#0b1120]/60 border-white/5 hover:border-white/10 transition-all group select-none">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          {/* Increased icon visibility */}
           <div className={`w-2 h-2 rounded-full bg-${color}-400 shadow-[0_0_8px_currentColor] animate-pulse`} />
           <span className="text-sm font-black tracking-[0.15em] text-slate-200 uppercase group-hover:text-white transition-colors">{label}</span>
         </div>
@@ -97,13 +97,20 @@ const SettingsModal = ({
   isSound, toggleSound,
   isLowEffects, toggleLowEffects,
   fxDensity, onChangeFxDensity,
-  // uiScale Removed
   onHome,
   onOpenGuide,
   bgmVolume = 50, setBgmVolume = () => {}, 
   sfxVolume = 50, setSfxVolume = () => {},
 }) => {
   const [activeTab, setActiveTab] = useState('general');
+  // Thêm state mounted để đảm bảo chỉ render khi đã load xong (fix lỗi đen màn hình SSR)
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   const tabs = [
     { id: 'general', label: 'HỆ THỐNG', icon: <IconLightning className="w-4 h-4" /> },
     { id: 'visual', label: 'ĐỒ HỌA', icon: <IconEye className="w-4 h-4" /> },
@@ -112,25 +119,33 @@ const SettingsModal = ({
 
   const density = Math.max(0, Math.min(100, fxDensity ?? 60));
 
-  return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+  // Nếu chưa mount hoặc không có document thì không render gì cả
+  if (!mounted || typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 font-sans">
         
-        {/* Backdrop: Blur & Dark Overlay */}
+        {/* 1. BACKDROP (Lớp nền đen mờ) - Z-Index thấp hơn Modal */}
         <motion.div 
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/80 backdrop-blur-md"
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 z-0 bg-black/80 backdrop-blur-md"
           onClick={onClose}
         />
 
+        {/* 2. MODAL CONTENT - Z-Index cao hơn Backdrop */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-[1100px] max-w-[95vw] h-[650px] flex rounded-[32px] shadow-[0_0_60px_-15px_rgba(6,182,212,0.2)] border border-slate-700/50 bg-[#020617] overflow-hidden group"
+          initial={{ opacity: 0, scale: 0.95, y: 10 }} 
+          animate={{ opacity: 1, scale: 1, y: 0 }} 
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={{ duration: 0.2 }}
+          className="relative z-10 w-[1100px] max-w-[95vw] h-[650px] flex rounded-[32px] shadow-[0_0_60px_-15px_rgba(6,182,212,0.2)] border border-slate-700/50 bg-[#020617] overflow-hidden group"
         >
           <CyberGridBg />
 
           {/* LEFT SIDEBAR */}
-          <div className="w-[260px] relative z-10 flex flex-col bg-[#050b1a]/60 backdrop-blur-sm border-r border-white/5">
+          <div className="w-[260px] relative z-20 flex flex-col bg-[#050b1a]/60 backdrop-blur-sm border-r border-white/5">
             <div className="p-8 pb-6">
               <div className="flex items-center gap-3 mb-1">
                 <div className="flex items-center justify-center w-8 h-8 rounded shadow-lg bg-gradient-to-br from-cyan-400 to-blue-600">
@@ -171,7 +186,7 @@ const SettingsModal = ({
           </div>
 
           {/* RIGHT CONTENT */}
-          <div className="relative z-10 flex flex-col flex-1 bg-transparent">
+          <div className="relative z-20 flex flex-col flex-1 bg-transparent">
             <div className="h-20 px-8 border-b border-white/5 flex items-center justify-between bg-[#0b1120]/30">
                <div>
                  <h3 className="text-2xl font-black tracking-wide text-transparent uppercase bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-slate-400">{tabs.find(t => t.id === activeTab)?.label}</h3>
@@ -189,10 +204,10 @@ const SettingsModal = ({
                        <div className="p-6 rounded-2xl bg-[#0f172a]/40 border border-cyan-500/10 shadow-xl relative overflow-hidden">
                          <div className="relative z-10">
                            <h4 className="inline-block pb-2 mb-6 text-sm font-bold tracking-widest uppercase border-b text-cyan-100 border-white/5">Thông Tin</h4>
-                           <p className="text-slate-300 text-sm">
+                           <p className="text-sm text-slate-300">
                              Chào mừng bạn đến với Scratch Logic Master. Tại đây bạn có thể tùy chỉnh các thiết lập để có trải nghiệm tốt nhất.
                            </p>
-                           <p className="text-slate-400 text-xs mt-2">
+                           <p className="mt-2 text-xs text-slate-400">
                              (Tính năng Zoom đã được loại bỏ theo yêu cầu để tối ưu hóa hiển thị.)
                            </p>
                          </div>
@@ -243,8 +258,8 @@ const SettingsModal = ({
           <CornerDecor className="bottom-0 right-0 rotate-180 rounded-tl-[30px]" />
           <CornerDecor className="bottom-0 left-0 -rotate-90 rounded-tl-[30px]" />
         </motion.div>
-      </div>
-    </AnimatePresence>
+    </div>,
+    document.body // Gắn thẳng vào Body
   );
 };
 

@@ -2,8 +2,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { IconStar, IconSkull, IconHome, IconSettings, IconRefresh, IconNext } from './Icons';
 
-const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, onHome, onReplay, onOpenSettings, onNextLevel, onStartReview }) => {
-  const isDark = theme === 'dark';
+// Đã xóa 'theme' khỏi props vì không dùng tới
+const ResultModal = ({ type, message, stats, scoreDetails, isGoldenWin, onHome, onReplay, onOpenSettings, onNextLevel, onStartReview }) => {
+  // Đã xóa dòng: const isDark = theme === 'dark'; (vì không dùng)
+  
   const isWin = type === 'win';
   const isReview = type === 'review_start';
 
@@ -13,10 +15,14 @@ const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, o
   const totalAnswered = correct + wrong;
   const accuracy = totalQuestions > 0 ? Math.round((correct / totalQuestions) * 100) : 0;
 
-  let subtitle = '';
-  if (isWin) subtitle = 'Bạn đã hoàn thành chặng code này! Tiếp tục chinh phục level mới nhé.';
-  else if (isReview) subtitle = 'Đã đến lúc ôn tập! Hoàn thành lại các câu sai để lấy điểm tuyệt đối.';
-  else subtitle = 'Bạn đã hết mạng ở chặng này. Thử lại và cải thiện kết quả lần sau!';
+  // SỬA LỖI: Sử dụng 'message' làm giá trị mặc định, nếu không có mới dùng text cứng
+  let subtitle = message; 
+  
+  if (!subtitle) {
+      if (isWin) subtitle = 'Bạn đã hoàn thành chặng code này! Tiếp tục chinh phục level mới nhé.';
+      else if (isReview) subtitle = 'Đã đến lúc ôn tập! Hoàn thành lại các câu sai để lấy điểm tuyệt đối.';
+      else subtitle = 'Bạn đã hết mạng ở chặng này. Thử lại và cải thiện kết quả lần sau!';
+  }
 
   // Theme Colors
   const bgGradient = isGoldenWin
@@ -152,7 +158,7 @@ const ResultModal = ({ type, message, theme, stats, scoreDetails, isGoldenWin, o
                      </div>
                      {isGoldenWin && (
                          <div className="mt-3 text-center">
-                             <span className="text-yellow-400 font-black tracking-widest animate-pulse">✨ GOLDEN MASTER ✨</span>
+                             <span className="font-black tracking-widest text-yellow-400 animate-pulse">✨ GOLDEN MASTER ✨</span>
                          </div>
                      )}
                    </div>
