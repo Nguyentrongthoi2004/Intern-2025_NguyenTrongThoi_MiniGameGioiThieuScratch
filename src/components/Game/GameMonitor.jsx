@@ -125,6 +125,8 @@ const GameMonitor = ({ isDark, difficulty, currentLevelIndex, characterState, ch
                   activeLoopType={activeLoopType}
                   repeatProgress={repeatProgress}
                   isFrozen={isFrozen}
+                  friend={characterState.friend}
+                  messageColor={characterState.messageColor}
               />
 
               {/* --- THANH TRẠNG THÁI DƯỚI (HUD) --- */}

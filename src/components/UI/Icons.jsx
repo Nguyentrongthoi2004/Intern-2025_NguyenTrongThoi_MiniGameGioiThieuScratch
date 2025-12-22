@@ -1,5 +1,4 @@
 // src/components/UI/Icons.jsx
-import React from 'react';
 
 // === MENU ICONS ===
 

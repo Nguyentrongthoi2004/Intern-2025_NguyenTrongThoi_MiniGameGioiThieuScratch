@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useRef, useState } from 'react';
+import { useMemo, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../utils/audioManager';
 import { IconMail } from '../UI/Icons'; 
 
@@ -65,7 +65,7 @@ const ProgressRing = ({ current, total }) => {
 const Stage = ({ 
   x, y, rotation, status, characterId, speechText, 
   visible = true, scale = 1, speed = 1, 
-  waitTimer, friend,
+  waitTimer, friend, messageColor,
   activeLoopType, repeatProgress, isFrozen = false
 }) => {
   const safeId = characterId || 'pink';
@@ -157,6 +157,17 @@ const Stage = ({
      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 border-4 border-white rounded-full animate-ping opacity-0 pointer-events-none z-10"></div>
   ) : null;
 
+  // Determine message envelope color class
+  const getEnvelopeColorClass = (color) => {
+      switch(color) {
+          case 'red': return 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]';
+          case 'blue': return 'text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]';
+          case 'green': return 'text-green-500 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]';
+          case 'yellow': return 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]';
+          default: return 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]';
+      }
+  };
+
   return (
     <div className={`relative w-full h-full overflow-hidden border-4 border-slate-700 bg-slate-900 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] rounded-2xl font-mono 
         ${status === 'hurt' || status === 'push' ? 'animate-shake-impact' : ''}
@@ -222,7 +233,7 @@ const Stage = ({
         <div className="relative w-full h-full overflow-hidden"
              style={{ animation: status === 'jump' && !isFrozen ? `bounce-arc ${moveDuration} infinite` : 'none' }}>
           <img src={`assets/images/characters/${safeId}/${animData.fileName}`} alt="Character"
-            className={`absolute relative top-0 left-0 z-10 h-full max-w-none pixelated ${isFrozen ? 'brightness-150 contrast-125 hue-rotate-180 sepia' : ''}`}
+            className={`absolute top-0 left-0 z-10 h-full max-w-none pixelated ${isFrozen ? 'brightness-150 contrast-125 hue-rotate-180 sepia' : ''}`}
             style={{ 
               width: `${animData.frames * 100}%`, 
               animation: `sprite-slide ${animDuration} steps(${animData.frames}) infinite`,
@@ -263,9 +274,15 @@ const Stage = ({
         )}
 
         {(status === 'throw' || status === 'push') && (
-          <div className="absolute flex items-center justify-center w-8 h-8 bg-slate-800 border-2 border-orange-400 rounded-full shadow-[0_0_10px_rgba(251,146,60,0.8)] -top-8 -right-8 animate-bounce z-20">
-             <span>💥</span>
-          </div>
+           messageColor ? (
+               <div className={`absolute flex items-center justify-center w-10 h-10 -top-8 -right-8 animate-bounce z-20 ${getEnvelopeColorClass(messageColor)}`}>
+                   <IconMail className="w-full h-full" />
+               </div>
+           ) : (
+               <div className="absolute flex items-center justify-center w-8 h-8 bg-slate-800 border-2 border-orange-400 rounded-full shadow-[0_0_10px_rgba(251,146,60,0.8)] -top-8 -right-8 animate-bounce z-20">
+                  <span>💥</span>
+               </div>
+           )
         )}
 
         {speechText && visible && (

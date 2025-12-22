@@ -17,6 +17,10 @@ export const useGameLogic = (difficulty, loadGame, activeCharacterId) => {
 
   // Load levels
   const gameLevels = useMemo(() => {
+    // refreshKey is used to force re-computation when restarting game
+    // eslint-disable-next-line no-unused-vars
+    const _ = refreshKey;
+
     const allForDifficulty = levels.filter((lvl) => lvl.difficulty === difficulty);
     if (loadGame && levelOrder && levelOrder.length > 0) {
        const orderedLevels = levelOrder.map(id => allForDifficulty.find(l => l.id === id)).filter(Boolean);
@@ -65,7 +69,7 @@ export const useGameLogic = (difficulty, loadGame, activeCharacterId) => {
 
     setModal(null);
     setTimeLeft(INITIAL_TIME);
-  }, [difficulty, loadGame, refreshKey]);
+  }, [difficulty, loadGame, refreshKey, gameLevels.length]);
 
   // Optimized Save Logic (Debounce)
   const saveTimeoutRef = useRef(null);

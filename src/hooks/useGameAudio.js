@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { audioManager } from '../utils/audioManager';
 
 export const useGameAudio = (enableSound, bgmVolume, sfxVolume) => {

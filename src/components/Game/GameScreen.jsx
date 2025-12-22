@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import anime from 'animejs';
@@ -20,20 +20,19 @@ const GameScreen = ({
   difficulty, onBack, characterId,
   setUiScale, uiScale, onNextLevel, loadGame,
   bgmVolume, setBgmVolume, sfxVolume, setSfxVolume, enableSound, setEnableSound,
-  totalPoints, setTotalPoints, inventory, setInventory
+  setTotalPoints, inventory, setInventory
 }) => {
   
-  const { playSfx, playBgm } = useGameAudio(enableSound, bgmVolume, sfxVolume);
+  const { playSfx } = useGameAudio(enableSound, bgmVolume, sfxVolume);
 
   const {
-    activeCharacterId, setActiveCharacterId,
+    activeCharacterId,
     characterState, setCharacterState,
-    activeLoopType, setActiveLoopType,
-    repeatProgress, setRepeatProgress,
-    isFrozen, setIsFrozen,
+    activeLoopType,
+    repeatProgress,
+    isFrozen,
     resetCharacter,
-    executeBlockAction,
-    clearAllTimeouts: clearCharTimeouts
+    executeBlockAction
   } = useCharacter(characterId, playSfx);
 
   const {
@@ -44,7 +43,6 @@ const GameScreen = ({
     wrongAnswers, setWrongAnswers,
     isReviewMode, setIsReviewMode,
     stats, setStats,
-    levelOrder, setLevelOrder,
     modal, setModal,
     timeLeft, setTimeLeft,
     gameLevels,
@@ -279,7 +277,7 @@ const GameScreen = ({
       }
       setIsProcessing(false);
     }
-  }, [lives, modal, showSettings, showGuide, isProcessing, activeLevelData, stats, setTotalPoints, isReviewMode, difficulty, scoreDetails, setScoreDetails, wrongAnswers, setWrongAnswers, setLives, setAnswerFeedback, setTimeLeft, playSfx, setCharacterState, containerControls, safeSetTimeout, executeBlockAction, goToNextLevel, setModal]);
+  }, [lives, modal, showSettings, showGuide, isProcessing, activeLevelData, stats, setTotalPoints, isReviewMode, difficulty, scoreDetails, setScoreDetails, wrongAnswers, setWrongAnswers, setLives, setAnswerFeedback, setTimeLeft, playSfx, setCharacterState, containerControls, safeSetTimeout, executeBlockAction, goToNextLevel, setModal, setStats]);
 
   const handleUsePowerUpReal = useCallback((type) => {
     if (inventory[type] <= 0) return;
