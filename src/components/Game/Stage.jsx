@@ -102,11 +102,13 @@ const Stage = ({
   
   // Logic tính toán xoay và lật hình
   const isFacingLeft = rotation === -90;
+  // Tính toán cssRotation dựa trên việc Sprite mặc định hướng sang phải (90 độ)
+  // Nếu rotation = 90 -> rotate(0deg)
+  // Nếu rotation = 0 -> rotate(-90deg) (Hướng lên)
+  // Nếu rotation = 135 -> rotate(45deg)
   let cssRotation = '';
-  if (rotation === 0) cssRotation = ''; 
-  else {
-      const isSpecialRotation = Math.abs(rotation) !== 90; 
-      cssRotation = isSpecialRotation ? `rotate(${rotation - 90}deg)` : '';
+  if (Math.abs(rotation) !== 90) {
+      cssRotation = `rotate(${rotation - 90}deg)`;
   }
   const cssScaleX = isFacingLeft ? -1 : 1;
 

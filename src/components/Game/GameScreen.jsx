@@ -135,6 +135,11 @@ const GameScreen = ({
     friend: null
   });
 
+  // Visual Effects State
+  const [activeLoopType, setActiveLoopType] = useState(null); // 'forever' | 'repeat' | null
+  const [repeatProgress, setRepeatProgress] = useState(null); // { current: 1, total: 4 }
+  const [isFrozen, setIsFrozen] = useState(false);
+
   const [stats, setStats] = useState({
     correct: 0,
     wrong: 0,
@@ -254,7 +259,8 @@ const GameScreen = ({
 
   useEffect(() => {
      if (lives <= 0 || modal) return;
-     if (gameLevels.length > 0) {
+     // Only save if the user has actually played (answered correct/wrong) or progressed beyond level 1
+     if (gameLevels.length > 0 && (stats.correct > 0 || stats.wrong > 0 || currentLevelIndex > 0)) {
         const saveData = {
           difficulty,
           characterId: activeCharacterId,
@@ -280,6 +286,9 @@ const GameScreen = ({
     setCharacterState({
       x: 0, y: 0, rotation: 90, status: 'idle', visible: true, scale: 1, speechText: null, speed: 1, waitTimer: null, isWaiting: false, friend: null
     });
+    setActiveLoopType(null);
+    setRepeatProgress(null);
+    setIsFrozen(false);
     setActiveCharacterId(characterId || 'pink');
   };
 
@@ -364,6 +373,7 @@ const GameScreen = ({
     let actionStatus = 'idle';
     
     const moveMatch = command.match(/(?:Move )?(Right|Left|Up|Down|Forward|Backward)(?: (\d+))?/i);
+    const turnMatch = command.match(/Turn (Right|Left)(?: (\d+))?/i);
     const hopMatch  = command.match(/Hop(?: (\d+))?/i);
     const colorMatch = command.match(/Color|Change/i);
     const friendMatch = command.match(/Friend|Message/i);
@@ -382,11 +392,22 @@ const GameScreen = ({
 
         if (dir === 'right') { next.x += px; next.rotation = 90; }
         if (dir === 'left')  { next.x -= px; next.rotation = -90; }
-        if (dir === 'up')    { next.y += px; next.rotation = 0; }
-        if (dir === 'down')  { next.y -= px; }
-        
+        if (dir === 'up')    { next.y += px; next.rotation = 0; } // Up = 0 degree (Wait, in Stage.jsx 0 might be tricky, but logic holds)
+        if (dir === 'down')  { next.y -= px; } // Down doesn't change rotation
+        if (dir === 'go' && command.match(/Home/i)) { next.x = 0; next.y = 0; } // Go Home
+
         next.x = Math.max(-460, Math.min(460, next.x));
         next.y = Math.max(-240, Math.min(240, next.y));
+      }
+      else if (turnMatch) {
+        const dir = turnMatch[1].toLowerCase();
+        const steps = parseInt(turnMatch[2] || '1');
+        const deg = steps * 45; // 45 degrees per step
+        if (dir === 'right') next.rotation += deg;
+        if (dir === 'left') next.rotation -= deg;
+      }
+      else if (command.match(/Go Home/i)) {
+         next.x = 0; next.y = 0;
       }
       else if (hopMatch) {
         // FIXED HOP: Now moves forward
@@ -464,10 +485,60 @@ const GameScreen = ({
     const actions = fullBlockText.split(/\s*->\s*|\n/).filter(s => s.trim() !== '');
     let accumulatedDelay = 0;
 
+    // Check for Loop/Control commands first
+    const repeatMatch = fullBlockText.match(/Repeat (\d+)/i);
+    const isForever = fullBlockText.match(/Forever/i);
+    const isEnd = fullBlockText.match(/End/i);
+
+    if (isEnd) {
+       setIsFrozen(true);
+       return; // Stop execution
+    }
+
+    if (isForever) {
+       setActiveLoopType('forever');
+       // Forever visual effect plays for a while then stops to let user pass level
+       safeSetTimeout(() => setActiveLoopType(null), 4000);
+    }
+
+    if (repeatMatch) {
+       const count = parseInt(repeatMatch[1]);
+       setActiveLoopType('repeat');
+       setRepeatProgress({ current: 0, total: count });
+
+       // Simulate progress for visual feedback
+       let currentStep = 0;
+       const intervalTime = 800;
+       const totalDuration = count * intervalTime;
+
+       const progId = safeSetInterval(() => {
+          currentStep++;
+          setRepeatProgress({ current: currentStep, total: count });
+          if (currentStep >= count) {
+             clearInterval(progId);
+             safeSetTimeout(() => {
+                setActiveLoopType(null);
+                setRepeatProgress(null);
+             }, 1000);
+          }
+       }, intervalTime);
+
+       // Add extra delay to accumulatedDelay if needed, but since we run actions in parallel...
+       // Actually, we usually want actions to run repeatedly?
+       // But here 'Repeat 4' is a single block command. We just show the visual.
+    }
+
+
     actions.forEach((cmd) => {
       let duration = 600; 
       const waitMatch = cmd.match(/Wait(?: (\d+))?/i);
-      if (waitMatch) {
+
+      // Skip control commands in standard processing if handled above,
+      // but 'Wait' is handled here. 'Repeat', 'Forever', 'End' are handled above or just visual.
+      if (cmd.match(/Repeat|Forever|End/i)) {
+         duration = 500; // minimal delay for control blocks
+      }
+      else if (waitMatch) {
         const secsToWait = parseInt(waitMatch[1] || '1');
         duration = 1000; 
         safeSetTimeout(() => {
@@ -495,6 +566,8 @@ const GameScreen = ({
         if (cmd.match(/Pop|Hide|Show|Fast|Slow/i)) duration = 400;
         if (cmd.match(/Friend|Message/i)) duration = 1000; 
         if (cmd.match(/Color|Change/i)) duration = 800;
+        if (cmd.match(/Turn/i)) duration = 500;
+        if (cmd.match(/Go Home/i)) duration = 800;
 
         safeSetTimeout(() => {
            const newStatus = processSingleCommand(cmd);
@@ -709,6 +782,9 @@ const GameScreen = ({
                     characterState={characterState} 
                     characterId={activeCharacterId}
                     timeLeft={timeLeft}
+                    activeLoopType={activeLoopType}
+                    repeatProgress={repeatProgress}
+                    isFrozen={isFrozen}
                 />
               </motion.div>
             </div>

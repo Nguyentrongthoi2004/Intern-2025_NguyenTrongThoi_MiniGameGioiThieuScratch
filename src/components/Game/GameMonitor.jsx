@@ -61,7 +61,7 @@ const JoyConRight = memo(() => {
 JoyConRight.displayName = 'JoyConRight';
 
 // --- 2. COMPONENT CHÍNH ---
-const GameMonitor = ({ isDark, difficulty, currentLevelIndex, characterState, characterId, timeLeft }) => {
+const GameMonitor = ({ isDark, difficulty, currentLevelIndex, characterState, characterId, timeLeft, activeLoopType, repeatProgress, isFrozen }) => {
   
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -122,6 +122,9 @@ const GameMonitor = ({ isDark, difficulty, currentLevelIndex, characterState, ch
                   speechText={characterState.speechText}
                   characterId={characterId} speed={characterState.speed}
                   waitTimer={characterState.waitTimer} 
+                  activeLoopType={activeLoopType}
+                  repeatProgress={repeatProgress}
+                  isFrozen={isFrozen}
               />
 
               {/* --- THANH TRẠNG THÁI DƯỚI (HUD) --- */}
