@@ -1,8 +1,9 @@
-import { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
 import { audioManager } from '../../utils/audioManager';
-import { IconMail } from '../UI/Icons';
+// Giả sử bạn đang có IconMail, nếu chưa có hãy tạm thời comment dòng này lại
+import { IconMail } from '../UI/Icons'; 
 
-// --- ASSETS CONFIG (Đưa ra ngoài component để tránh khởi tạo lại) ---
+// --- 1. CẤU HÌNH NHÂN VẬT (Giữ nguyên) ---
 const CHAR_CONFIG = {
   pink: {
     idle:   { fileName: 'Pink_Monster_Idle_4.png', frames: 4 },
@@ -42,30 +43,74 @@ const CHAR_CONFIG = {
   }
 };
 
+// --- 2. COMPONENT CON: VÒNG TRÒN TIẾN TRÌNH (Cho khối Repeat) ---
+const ProgressRing = ({ current, total }) => {
+  const radius = 14; // Bán kính vòng tròn
+  const stroke = 3;  // Độ dày nét
+  const normalizedRadius = radius - stroke * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  // Tính toán độ dài nét vẽ dựa trên % hoàn thành
+  const strokeDashoffset = circumference - (current / total) * circumference;
+
+  return (
+    <div className="relative flex items-center justify-center w-10 h-10">
+        <svg height={radius * 2} width={radius * 2} className="rotate-[-90deg]">
+            {/* Vòng tròn mờ bên dưới */}
+            <circle
+                stroke="rgba(255,255,255,0.2)"
+                strokeWidth={stroke}
+                fill="transparent"
+                r={normalizedRadius}
+                cx={radius}
+                cy={radius}
+            />
+            {/* Vòng tròn hiển thị tiến trình (Màu xanh) */}
+            <circle
+                stroke="#4ade80" 
+                strokeWidth={stroke}
+                strokeDasharray={circumference + ' ' + circumference}
+                style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.3s ease' }}
+                strokeLinecap="round"
+                fill="rgba(0,0,0,0.5)"
+                r={normalizedRadius}
+                cx={radius}
+                cy={radius}
+            />
+        </svg>
+        {/* Số đếm ở giữa (VD: 1/4) */}
+        <span className="absolute text-[9px] font-bold text-white font-mono tracking-tighter">
+            {current}/{total}
+        </span>
+    </div>
+  );
+};
+
+// --- 3. COMPONENT CHÍNH ---
 const Stage = ({ 
   x, y, rotation, status, characterId, speechText, 
   visible = true, scale = 1, speed = 1, 
-  waitTimer, friend 
+  waitTimer, friend,
+  // 👇 CÁC PROPS MỚI BẠN CẦN TRUYỀN TỪ PARENT VÀO 👇
+  activeLoopType, // giá trị: 'forever' | 'repeat' | null
+  repeatProgress, // giá trị: { current: 1, total: 4 }
+  isFrozen = false // giá trị: true | false (Dùng cho khối End)
 }) => {
   const safeId = characterId || 'pink';
-  
   const lastPlayedText = useRef('');
-
   const currentConfig = CHAR_CONFIG[safeId] || CHAR_CONFIG.pink;
   const animData = currentConfig[status] || currentConfig.idle;
   
-  // --- LOGIC ROTATION ---
+  // Logic tính toán xoay và lật hình
   const isFacingLeft = rotation === -90;
   let cssRotation = '';
-  if (rotation === 0) {
-      cssRotation = ''; 
-  } else {
+  if (rotation === 0) cssRotation = ''; 
+  else {
       const isSpecialRotation = Math.abs(rotation) !== 90; 
       cssRotation = isSpecialRotation ? `rotate(${rotation - 90}deg)` : '';
   }
   const cssScaleX = isFacingLeft ? -1 : 1;
 
-  // --- LOGIC BUBBLE ---
+  // Logic hiển thị bong bóng chat
   const isThinking = useMemo(() => {
     if (!speechText) return false;
     return speechText.includes('...') || speechText === 'Zzz' || speechText === 'Hmm' || speechText.startsWith('(');
@@ -74,38 +119,47 @@ const Stage = ({
   const bubbleBorderColor = isThinking ? 'border-slate-400' : 'border-cyan-500';
   const bubbleBgColor = isThinking ? 'bg-white' : 'bg-cyan-100';
 
-  // --- 3. XỬ LÝ ÂM THANH (FIXED) ---
+  // State để hiện dấu tích xanh khi Repeat xong
+  const [showCheckmark, setShowCheckmark] = useState(false);
+
+  // --- XỬ LÝ ÂM THANH & HIỆU ỨNG ---
   useEffect(() => {
-    if (!speechText || typeof speechText !== 'string') return;
-
-    if (lastPlayedText.current === speechText) return;
-
-    const popRegex = /\bpop\b/i;
-
-    if (popRegex.test(speechText)) {
-      audioManager.playSfx('pop.mp3');
-      lastPlayedText.current = speechText;
-    } else {
-      lastPlayedText.current = speechText;
+    // 1. Âm thanh nói chuyện
+    if (speechText && typeof speechText === 'string') {
+        if (lastPlayedText.current !== speechText) {
+            const popRegex = /\bpop\b/i;
+            if (popRegex.test(speechText)) audioManager.playSfx('pop.mp3');
+            lastPlayedText.current = speechText;
+        }
     }
-  }, [speechText]);
 
-  // --- TIMING ---
+    // 2. Âm thanh "Ding" khi Repeat hoàn thành
+    if (activeLoopType === 'repeat' && repeatProgress) {
+        if (repeatProgress.current === repeatProgress.total) {
+            audioManager.playSfx('ding.mp3'); 
+            setShowCheckmark(true);
+            const timer = setTimeout(() => setShowCheckmark(false), 1000);
+            return () => clearTimeout(timer);
+        }
+    }
+  }, [speechText, activeLoopType, repeatProgress]);
+
+  // Timing Animation
   const baseAnimSpeed = status === 'death' ? 1.0 : 0.3;
   const animDuration = `${baseAnimSpeed / speed}s`;
   const moveDuration = `${0.6 / speed}s`;
 
-  // --- OPTIMIZED STYLES ---
-  // Dùng useMemo cho style object để tránh tạo object mới mỗi lần render nếu props không đổi
-  // Sử dụng translate3d để force GPU
+  // Style cho nhân vật chính
   const characterStyle = useMemo(() => ({
     top: '50%', left: '50%',
-    transition: `transform ${moveDuration} cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease`,
+    // Nếu bị đóng băng (End), tắt hiệu ứng chuyển động để dừng ngay lập tức
+    transition: isFrozen ? 'none' : `transform ${moveDuration} cubic-bezier(0.4, 0, 0.2, 1), filter 0.5s ease`,
     transform: `translate3d(-50%, -100%, 0) translate3d(${x}px, ${y * -1}px, 0) scale3d(${cssScaleX * (visible ? scale : 0)}, ${visible ? scale : 0}, 1) ${cssRotation}`,
     opacity: visible ? 1 : 0,
     filter: `drop-shadow(0 4px 6px rgba(0,0,0,0.3))`
-  }), [x, y, cssScaleX, scale, visible, cssRotation, moveDuration]);
+  }), [x, y, cssScaleX, scale, visible, cssRotation, moveDuration, isFrozen]);
 
+  // Style cho bạn bè (nếu có)
   const friendStyle = useMemo(() => {
     if (!friend) return {};
     return {
@@ -116,18 +170,35 @@ const Stage = ({
     };
   }, [friend]);
 
+  // --- UI OVERLAY KHI GAME KẾT THÚC (END) ---
+  const freezeOverlay = isFrozen ? (
+    <div className="absolute inset-0 z-[100] bg-slate-900/60 backdrop-blur-[2px] flex flex-col items-center justify-center animate-fade-in">
+        <div className="p-3 px-6 bg-red-600 border-4 border-white shadow-[0_0_30px_rgba(220,38,38,0.5)] rounded-2xl animate-bounce">
+            <span className="text-2xl font-black tracking-widest text-white uppercase">STOPPED</span>
+        </div>
+        <p className="mt-4 text-xs font-bold tracking-wider text-white uppercase opacity-80 animate-pulse">Chương trình đã dừng</p>
+    </div>
+  ) : null;
+
   return (
-    <div className={`relative w-full h-full overflow-hidden border-4 border-slate-700 bg-slate-900 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] rounded-2xl font-mono ${status === 'hurt' || status === 'push' ? 'animate-shake-impact' : ''}`}>
+    <div className={`relative w-full h-full overflow-hidden border-4 border-slate-700 bg-slate-900 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] rounded-2xl font-mono 
+        ${status === 'hurt' || status === 'push' ? 'animate-shake-impact' : ''}
+        ${isFrozen ? 'grayscale brightness-75' : ''} 
+    `}>
       
-      {/* Background */}
+      {/* 1. LỚP PHỦ ĐÓNG BĂNG (END BLOCK) */}
+      {freezeOverlay}
+
+      {/* 2. BACKGROUND GRID */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="w-full h-full" style={{ backgroundImage: 'linear-gradient(rgba(56,189,248,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.1) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        {/* Trục tọa độ đỏ/xanh */}
         <div className="absolute top-1/2 left-0 w-full h-[1px] bg-red-500/80 shadow-[0_0_8px_rgba(239,68,68,0.8)] z-0"></div>
         <div className="absolute left-1/2 top-0 h-full w-[1px] bg-cyan-400/80 shadow-[0_0_8px_rgba(34,211,238,0.8)] z-0"></div>
         <div key={characterId} className="absolute inset-0 bg-transparent pointer-events-none" />
       </div>
 
-      {/* Coordinates */}
+      {/* 3. HIỂN THỊ TỌA ĐỘ */}
       <div className="absolute z-50 px-4 py-2 border rounded-lg shadow-lg top-4 right-4 bg-slate-950/80 text-cyan-400 border-cyan-500/30 backdrop-blur-md">
         <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Coordinates</div>
         <div className="flex gap-4 font-mono text-sm font-bold text-cyan-300/90">
@@ -136,7 +207,7 @@ const Stage = ({
         </div>
       </div>
 
-      {/* Wait Timer */}
+      {/* 4. ĐỒNG HỒ ĐẾM NGƯỢC (WAIT BLOCK) */}
       {waitTimer !== null && waitTimer !== undefined && (
         <div className="absolute z-50 flex flex-col items-center justify-center -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
            <div className="flex items-center justify-center w-24 h-24 bg-slate-900/90 border-4 border-cyan-400 rounded-full shadow-[0_0_40px_rgba(34,211,238,0.8)] animate-pulse">
@@ -146,12 +217,9 @@ const Stage = ({
         </div>
       )}
 
-      {/* Friend */}
+      {/* 5. NHÂN VẬT PHỤ (FRIEND) */}
       {friend && friend.visible && CHAR_CONFIG[friend.id] && (
-        <div
-          className="absolute z-10 w-32 h-32 will-change-transform"
-          style={friendStyle}
-        >
+        <div className="absolute z-10 w-32 h-32 will-change-transform" style={friendStyle}>
            <img 
              src={`assets/images/characters/${friend.id}/${CHAR_CONFIG[friend.id].idle.fileName}`}
              alt="Friend"
@@ -164,18 +232,16 @@ const Stage = ({
         </div>
       )}
 
-      {/* Obstacle */}
+      {/* 6. VẬT CẢN (OBSTACLE) */}
       {(status === 'hurt' || status === 'push') && (
         <img src={`assets/images/characters/${safeId}/Rock1.png`} className="absolute z-0 w-12 h-12 top-1/2 left-1/2 pixelated opacity-90" style={{ transform: `translate(30px, -20px)` }} alt="Obstacle" />
       )}
 
-      {/* Main Character */}
-      <div
-        className="absolute z-20 w-32 h-32 will-change-transform"
-        style={characterStyle}
-      >
-        {/* Dust */}
-        {animData.dust && visible && (
+      {/* 7. NHÂN VẬT CHÍNH (MAIN CHAR) */}
+      <div className="absolute z-20 w-32 h-32 will-change-transform" style={characterStyle}>
+        
+        {/* Hiệu ứng bụi (Dust) */}
+        {animData.dust && visible && !isFrozen && (
           <div className="absolute bottom-0 w-full -translate-x-1/2 pointer-events-none left-1/2 h-1/2 opacity-60 mix-blend-screen"
             style={{ 
               backgroundImage: `url('assets/images/characters/${safeId}/${animData.dust}')`,
@@ -185,20 +251,49 @@ const Stage = ({
             }} />
         )}
 
-        {/* Sprite */}
+        {/* Sprite (Hình ảnh nhân vật) */}
         <div className="relative w-full h-full overflow-hidden"
-             style={{ 
-               animation: status === 'jump' ? `bounce-arc ${moveDuration} infinite` : 'none' 
-             }}>
+             style={{ animation: status === 'jump' && !isFrozen ? `bounce-arc ${moveDuration} infinite` : 'none' }}>
           <img src={`assets/images/characters/${safeId}/${animData.fileName}`} alt="Character"
             className="absolute relative top-0 left-0 z-10 h-full max-w-none pixelated"
             style={{ 
               width: `${animData.frames * 100}%`, 
-              animation: `sprite-slide ${animDuration} steps(${animData.frames}) infinite` 
+              animation: `sprite-slide ${animDuration} steps(${animData.frames}) infinite`,
+              animationPlayState: isFrozen ? 'paused' : 'running' // Dừng hình khi Frozen
             }} />
         </div>
 
-        {/* Icons */}
+        {/* 🔥 8. CÁC HIỆU ỨNG ĐẶC BIỆT (FOREVER / REPEAT) - NẰM TRÊN ĐẦU NHÂN VẬT 🔥 */}
+        <div className="absolute top-0 z-40 flex flex-col items-center w-full gap-1 -translate-x-1/2 -translate-y-full left-1/2" 
+             style={{ transform: isFacingLeft ? 'scaleX(-1)' : 'none' }}> {/* Lật ngược lại nếu nhân vật quay trái để icon không bị ngược */}
+            
+            {/* A. HIỆU ỨNG FOREVER (Vô cực xoay) */}
+            {activeLoopType === 'forever' && !isFrozen && (
+                <div className="relative flex items-center justify-center w-12 h-12">
+                    <div className="text-4xl text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 font-black animate-pulse filter drop-shadow-[0_0_5px_rgba(236,72,153,0.8)] pb-2">
+                        ∞
+                    </div>
+                    {/* Vòng xoay phát sáng bao quanh */}
+                    <div className="absolute inset-0 w-full h-full border-2 border-dashed rounded-full opacity-50 border-white/50 animate-spin-slow"></div>
+                </div>
+            )}
+
+            {/* B. HIỆU ỨNG REPEAT (Thanh tiến trình tròn) */}
+            {activeLoopType === 'repeat' && repeatProgress && !showCheckmark && !isFrozen && (
+                <div className="p-1 mb-2 border rounded-full shadow-lg bg-slate-800/90 backdrop-blur-sm border-cyan-500/50">
+                    <ProgressRing current={repeatProgress.current} total={repeatProgress.total} />
+                </div>
+            )}
+
+            {/* C. HIỆU ỨNG HOÀN THÀNH REPEAT (Dấu tích xanh + Ding) */}
+            {showCheckmark && (
+                <div className="flex items-center justify-center w-10 h-10 bg-green-500 rounded-full shadow-[0_0_20px_rgba(34,197,94,1)] animate-pop-in mb-2">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+            )}
+        </div>
+
+        {/* 9. CÁC ICON TRẠNG THÁI KHÁC */}
         {status === 'flag' && (
           <div className="absolute z-30 -translate-x-1/2 -top-16 left-1/2" style={{ transform: isFacingLeft ? 'scaleX(-1)' : 'none' }}>
              <div className="flex items-center justify-center w-12 h-12 bg-white border-2 border-green-500 rounded-full shadow-[0_0_15px_rgba(34,197,94,0.6)] animate-bounce">
@@ -209,11 +304,11 @@ const Stage = ({
 
         {status === 'throw' && (
           <div className="absolute flex items-center justify-center w-8 h-8 bg-slate-800 border-2 border-orange-400 rounded-full shadow-[0_0_10px_rgba(251,146,60,0.8)] -top-8 -right-8 animate-bounce z-20">
-            <IconMail className="w-5 h-5 text-orange-400" />
+            {IconMail ? <IconMail className="w-5 h-5 text-orange-400" /> : <span>✉️</span>}
           </div>
         )}
 
-        {/* Speech Bubble */}
+        {/* 10. BONG BÓNG HỘI THOẠI (SPEECH BUBBLE) */}
         {speechText && visible && (
           <div className="absolute z-30 -translate-x-1/2 -top-16 left-1/2" style={{ transform: isFacingLeft ? 'scaleX(-1)' : 'none' }}>
             <div className={`relative px-4 py-2 text-xs font-bold text-cyan-950 ${bubbleBgColor} border-2 ${bubbleBorderColor} ${isThinking ? 'rounded-[20px]' : 'rounded-lg'} shadow-[0_0_15px_rgba(34,211,238,0.5)] min-w-[80px] text-center whitespace-nowrap animate-pop-in`}>
