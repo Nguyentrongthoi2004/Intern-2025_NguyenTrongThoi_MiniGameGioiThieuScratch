@@ -25,6 +25,7 @@ const GameScreen = ({
   
   const { playSfx } = useGameAudio(enableSound, bgmVolume, sfxVolume);
 
+  // --- [UPDATE] Lấy thêm hàm stopAnimations từ hook ---
   const {
     activeCharacterId,
     characterState, setCharacterState,
@@ -32,7 +33,8 @@ const GameScreen = ({
     repeatProgress,
     isFrozen,
     resetCharacter,
-    executeBlockAction
+    executeBlockAction,
+    stopAnimations // <--- Hàm này dùng để dừng ngay lập tức
   } = useCharacter(characterId, playSfx);
 
   const {
@@ -63,14 +65,13 @@ const GameScreen = ({
   const [answerFeedback, setAnswerFeedback] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // --- [LOGIC MỚI] ---
+  // --- [LOGIC CHUYỂN MÀN TỰ ĐỘNG] ---
   const [isTimerRunning, setIsTimerRunning] = useState(true); 
   const [isWaitingNextLevel, setIsWaitingNextLevel] = useState(false); 
   const [autoNextCountdown, setAutoNextCountdown] = useState(15);
   
   // Dùng Ref để chặn double-click hoặc race condition
   const isWaitingRef = useRef(false);
-  // -------------------
 
   const timeoutsRef = useRef([]);
   const containerControls = useAnimation();
@@ -96,10 +97,25 @@ const GameScreen = ({
     return () => clearAllTimeouts();
   }, [clearAllTimeouts]);
 
-  // Đồng bộ ref với state để dùng trong các hàm async
   useEffect(() => {
       isWaitingRef.current = isWaitingNextLevel;
   }, [isWaitingNextLevel]);
+
+  // --- [UPDATE] HÀM XỬ LÝ NÚT STOP / BỎ QUA ---
+  const handleForceStop = useCallback(() => {
+    // 1. Gọi lệnh dừng bên useCharacter
+    stopAnimations();
+
+    // 2. Báo cho GameScreen biết là đã xử lý xong
+    setIsProcessing(false);
+    
+    // 3. Nếu chưa hiện nút Tiếp tục thì hiện nó lên ngay
+    if (!isWaitingNextLevel) {
+        setIsWaitingNextLevel(true);
+        isWaitingRef.current = true; // Khóa interaction
+        setAutoNextCountdown(15);    // Bắt đầu đếm ngược chuyển màn
+    }
+  }, [stopAnimations, isWaitingNextLevel]);
 
   // --- TIMER CHÍNH ---
   useEffect(() => {
@@ -125,8 +141,6 @@ const GameScreen = ({
       timer = setInterval(() => {
         setAutoNextCountdown((prev) => {
           if (prev <= 1) {
-            // Hết 15s thì tự động chuyển
-            // Phải dùng ref hoặc hàm callback để đảm bảo gọi đúng
             return 0;
           }
           return prev - 1;
@@ -136,7 +150,7 @@ const GameScreen = ({
     return () => clearInterval(timer);
   }, [isWaitingNextLevel]);
 
-  // Effect riêng để trigger chuyển màn khi countdown về 0
+  // Trigger chuyển màn khi countdown về 0
   useEffect(() => {
       if (isWaitingNextLevel && autoNextCountdown === 0) {
           handleManualNextLevel();
@@ -238,7 +252,6 @@ const GameScreen = ({
   }, [goToNextLevel]);
 
   const handleBlockClick = useCallback(async (blockId) => {
-    // Check kỹ: Nếu đang chờ (isWaitingRef) thì CHẶN LUÔN
     if (lives <= 0 || modal || showSettings || showGuide || isProcessing || isWaitingRef.current) return;
     
     const selectedBlock = activeLevelData.options.find(opt => opt.id === blockId);
@@ -248,7 +261,6 @@ const GameScreen = ({
     const isCorrect = blockId === activeLevelData.correctBlockId;
 
     if (isCorrect) {
-      // 1. DỪNG GIỜ
       setIsTimerRunning(false);
 
       const newCorrect = stats.correct + 1;
@@ -283,36 +295,29 @@ const GameScreen = ({
       // Lưu điểm
       let currentWrongAnswers = wrongAnswers;
       if (isReviewMode) {
-         currentWrongAnswers = wrongAnswers.filter(w => w.id !== activeLevelData.id);
-         setWrongAnswers(currentWrongAnswers);
-         // update storage...
-         const currentScore = scoreDetails[difficulty] || 0;
-         const newScoreDetails = { ...scoreDetails, [difficulty]: Math.min(10, currentScore + 1) };
-         setScoreDetails(newScoreDetails);
-         localStorage.setItem('scratch_game_scores', JSON.stringify(newScoreDetails));
-      } else {
-         const currentScore = scoreDetails[difficulty] || 0;
-         const newScoreDetails = { ...scoreDetails, [difficulty]: Math.min(10, currentScore + 1) };
-         setScoreDetails(newScoreDetails);
-         localStorage.setItem('scratch_game_scores', JSON.stringify(newScoreDetails));
+          currentWrongAnswers = wrongAnswers.filter(w => w.id !== activeLevelData.id);
+          setWrongAnswers(currentWrongAnswers);
       }
+      
+      const currentScore = scoreDetails[difficulty] || 0;
+      const newScoreDetails = { ...scoreDetails, [difficulty]: Math.min(10, currentScore + 1) };
+      setScoreDetails(newScoreDetails);
+      localStorage.setItem('scratch_game_scores', JSON.stringify(newScoreDetails));
 
       setAnswerFeedback({ status: 'correct', selectedId: blockId, correctId: activeLevelData.correctBlockId });
 
-      // 2. CHỜ DIỄN (Await quan trọng)
+      // CHỜ DIỄN (Await quan trọng)
       await executeBlockAction(selectedBlock.text, setTimeLeft);
       
       if (selectedBlock.text.match(/\bEnd\b/i)) {
           await new Promise(r => setTimeout(r, 2000));
       }
       
-      // 3. BẬT CHỜ 15S (Quan trọng: set Ref ngay để chặn click liên tiếp)
+      // BẬT CHỜ 15S
       setIsProcessing(false);
       setIsWaitingNextLevel(true);
       isWaitingRef.current = true; // Khóa interaction
       setAutoNextCountdown(15);
-
-      // TUYỆT ĐỐI KHÔNG GỌI goToNextLevel() Ở ĐÂY
 
     } else {
       // --- TRẢ LỜI SAI ---
@@ -322,10 +327,10 @@ const GameScreen = ({
 
       let currentWrongAnswers = wrongAnswers;
       if (!isReviewMode) {
-         setWrongAnswers(prev => {
-            if (prev.some(w => w.id === activeLevelData.id)) return prev;
-            return [...prev, { id: activeLevelData.id }];
-         });
+          setWrongAnswers(prev => {
+             if (prev.some(w => w.id === activeLevelData.id)) return prev;
+             return [...prev, { id: activeLevelData.id }];
+          });
       }
 
       const newLives = lives - 1;
@@ -344,10 +349,9 @@ const GameScreen = ({
         setCharacterState(prev => ({ ...prev, status: 'hurt' }));
         containerControls.start({ x: [-5, 5, -5, 5, 0], transition: { duration: 0.3 } });
         
-        // Sai thì chuyển màn luôn sau 0.8s
         safeSetTimeout(() => {
             setIsProcessing(false);
-            goToNextLevel(newStats, currentWrongAnswers); // Sai thì không cần chờ 15s
+            goToNextLevel(newStats, currentWrongAnswers);
         }, 800);
       }
     }
@@ -355,7 +359,7 @@ const GameScreen = ({
 
   const handleUsePowerUpReal = useCallback((type) => {
     if (inventory[type] <= 0) return;
-    if (lives <= 0 || modal || isProcessing || isWaitingRef.current) return; // Chặn nếu đang chờ
+    if (lives <= 0 || modal || isProcessing || isWaitingRef.current) return;
 
     const btnId = `#btn-powerup-${type}`;
     anime({
@@ -380,7 +384,6 @@ const GameScreen = ({
           setLives(prev => Math.min(5, prev + 1));
           setInventory(prev => ({ ...prev, heal: prev.heal - 1 }));
           playSfx('win.mp3');
-          // Heart effect logic...
        }
     } else if (type === 'skip') {
        setInventory(prev => ({ ...prev, skip: prev.skip - 1 }));
@@ -415,6 +418,26 @@ const GameScreen = ({
       <div className="absolute top-0 left-0 z-50 p-4">
         <GameControls onBack={onBack} setShowSettings={setShowSettings} toggleTheme={() => setTheme(p => p==='light'?'dark':'light')} theme={theme} setHideUI={setHideUI} hideUI={hideUI} />
       </div>
+
+      {/* --- NÚT STOP / SKIP ANIMATION --- */}
+      <AnimatePresence>
+        {isProcessing && ( // Chỉ hiện khi đang chạy code (Processing = true)
+            <motion.button
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleForceStop}
+                className="absolute top-24 right-8 z-[60] flex items-center gap-2 px-5 py-2 bg-red-500/90 hover:bg-red-600 text-white rounded-full shadow-lg backdrop-blur-sm border border-red-400/50 group cursor-pointer"
+            >
+                <div className="flex items-center justify-center w-6 h-6 bg-white rounded-full">
+                    <div className="w-2 h-2 bg-red-500 rounded-sm" /> 
+                </div>
+                <span className="text-sm font-bold tracking-wide uppercase">Dừng Hiệu Ứng</span>
+            </motion.button>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {isWaitingNextLevel && (

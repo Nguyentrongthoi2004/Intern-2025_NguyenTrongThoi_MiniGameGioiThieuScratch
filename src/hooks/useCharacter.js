@@ -35,7 +35,7 @@ export const useCharacter = (initialId, playSfx) => {
   const [isFrozen, setIsFrozen] = useState(false);
 
   const timeoutsRef = useRef([]);
-  // [MỚI] Ref này dùng để ngắt vòng lặp ngay lập tức khi bấm Stop/Reset
+  // Ref này dùng để ngắt vòng lặp ngay lập tức khi bấm Stop/Reset
   const isRunningRef = useRef(false);
 
   // --- QUẢN LÝ TIMER ---
@@ -57,9 +57,34 @@ export const useCharacter = (initialId, playSfx) => {
     return () => clearAllTimeouts();
   }, [clearAllTimeouts]);
 
-  // --- RESET GAME ---
+  // --- [MỚI] HÀM DỪNG HIỆU ỨNG (SKIP ANIMATION) ---
+  // Hàm này chỉ dừng chuyển động, không reset vị trí nhân vật
+  const stopAnimations = useCallback(() => {
+    // 1. Ngắt điện vòng lặp ngay lập tức
+    isRunningRef.current = false;
+    
+    // 2. Xóa các timer chờ
+    clearAllTimeouts();
+
+    // 3. Đưa nhân vật về trạng thái đứng yên (idle)
+    setCharacterState(prev => ({
+      ...prev,
+      status: 'idle',       // Dừng hành động
+      speechText: null,     // Tắt bong bóng thoại
+      isWaiting: false,     // Tắt đồng hồ đếm ngược
+      waitTimer: null,
+      tapEffect: false
+    }));
+
+    // 4. Reset các biến vòng lặp
+    setActiveLoopType(null);
+    setRepeatProgress(null);
+    setIsFrozen(false);
+  }, [clearAllTimeouts]);
+
+  // --- RESET GAME (Reset toàn bộ về mặc định) ---
   const resetCharacter = useCallback((resetId = null) => {
-    // [QUAN TRỌNG] Gạt cần xuống false để ngắt mọi vòng lặp đang chạy ngầm
+    // Gạt cần xuống false để ngắt mọi vòng lặp đang chạy ngầm
     isRunningRef.current = false;
     
     clearAllTimeouts();
@@ -400,6 +425,7 @@ export const useCharacter = (initialId, playSfx) => {
       isFrozen, setIsFrozen,
       resetCharacter,
       executeBlockAction,
-      clearAllTimeouts
+      clearAllTimeouts,
+      stopAnimations // <--- Hàm này dùng để dừng hiệu ứng ngay lập tức
   };
 };
