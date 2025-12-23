@@ -417,6 +417,25 @@ const GameScreen = ({
       </div>
 
       <AnimatePresence>
+        {isProcessing && (
+          <motion.button
+            key="stop-btn"
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            onClick={() => resetCharacter()}
+            className="absolute top-[85px] left-1/2 -translate-x-1/2 z-[999]
+                       flex items-center gap-3 px-6 py-2
+                       bg-rose-600 text-white rounded-full
+                       shadow-[0_0_20px_rgba(225,29,72,0.6)]
+                       hover:bg-rose-500 hover:scale-105 active:scale-95 transition-all
+                       border-2 border-rose-400/50 backdrop-blur-md"
+          >
+            <span className="text-xl animate-pulse">🛑</span>
+            <span className="font-bold tracking-wide text-sm uppercase">Dừng & Tiếp Tục</span>
+          </motion.button>
+        )}
+
         {isWaitingNextLevel && (
           <motion.div 
             initial={{ y: 100, opacity: 0 }}
