@@ -12,7 +12,6 @@ const GamePanel = React.memo(({
   currentLevel,
   handleBlockClick,
   answerFeedback,
-  onSkipFeedback,
   powerUps,
   handleUsePowerUp,
   disabledOptions = []
@@ -179,7 +178,7 @@ const GamePanel = React.memo(({
                 </p>
               </div>
 
-              <div className="mt-2 ml-1 flex items-start gap-2">
+              <div className="flex items-start gap-2 mt-2 ml-1">
                  <button
                     onClick={() => setShowHint(prev => !prev)}
                     className="px-2 py-0.5 rounded border border-yellow-500/30 bg-yellow-500/10 text-[10px] text-yellow-300 hover:bg-yellow-500/20 transition"
@@ -188,7 +187,7 @@ const GamePanel = React.memo(({
                  </button>
                  {showHint && (
                     <p className={`text-[11px] font-medium opacity-75 ${currentTheme.textSub}`}>
-                        <span className="text-yellow-400 animate-pulse mr-1">💡</span>
+                        <span className="mr-1 text-yellow-400 animate-pulse">💡</span>
                         {currentLevel.hint || 'Gợi ý: Hãy quan sát kỹ đường đi của nhân vật trước khi chọn block.'}
                     </p>
                  )}
@@ -281,7 +280,7 @@ const GamePanel = React.memo(({
           </div>
 
           {/* POWER UPS AREA */}
-          <div className="mt-auto pt-2 pb-2 border-t border-slate-700/50 flex justify-center gap-4">
+          <div className="flex justify-center gap-4 pt-2 pb-2 mt-auto border-t border-slate-700/50">
              {powerUps && handleUsePowerUp && (
                <>
                  <PowerUpButton

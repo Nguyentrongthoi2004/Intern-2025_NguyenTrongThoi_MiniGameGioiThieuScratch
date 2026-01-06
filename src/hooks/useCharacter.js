@@ -315,7 +315,7 @@ export const useCharacter = (initialId, playSfx) => {
   }, [initialId, playSfx, activeCharacterId, getRandomCharacter, safeSetTimeout]);
 
   // --- HÀM CHẠY CHUỖI LỆNH (EXECUTION LOOP ĐÃ NÂNG CẤP) ---
-  const executeBlockAction = useCallback(async (fullBlockText, setTimeLeft) => {
+  const executeBlockAction = useCallback(async (fullBlockText) => {
     // 1. Kích hoạt trạng thái chạy
     isRunningRef.current = true;
     setIsFrozen(false);
@@ -326,7 +326,7 @@ export const useCharacter = (initialId, playSfx) => {
 
     // STRICT END DETECTION
     const isEnd = actions.some(action => {
-       const clean = action.replace(/[\[\]]/g, '').trim();
+       const clean = action.replace(/\[\[\]]/g, '').trim();
        return clean.match(/^(End|End Game)$/i);
     });
 
